@@ -3,10 +3,11 @@ from .resultModel import ResultModel
 from .algorithmModel import AlgorithmModel
 from .experimentModel import ExperimentModel
 
+
 class VersionModel(models.Model):
     """ This class is the supclass of the Model-class from Django.
         It contains the essentail fields and data that is stored in the database.
-    """ 
+    """
     parameterSettings = models.JSONField()
     version = models.CharField(max_length=50)
     seed = models.IntegerField()
