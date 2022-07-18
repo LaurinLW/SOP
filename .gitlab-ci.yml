@@ -1,0 +1,8 @@
+image: python:latest
+
+before_script:
+  - pip install flake8
+
+test:
+  script:
+    - flake8 --config setup.cfg webserver experiment
