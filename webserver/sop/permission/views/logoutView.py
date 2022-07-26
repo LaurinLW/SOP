@@ -1,16 +1,17 @@
 from django.shortcuts import redirect
 from django.contrib.auth import logout
+from django.views import View
 
 
-def logout_request(request):
-    """ This method handels the logout requests from Users
-
-    Args:
-        request (HttpRequest):
-
-
-    Returns:
-        HttpResponseRedirect: Redirects to the url in the argument
+class LogoutView(View):
+    """ This class is a subclass of View
     """
-    logout(request)
-    return redirect("login")
+
+    def get(self, request, *args, **kwargs):
+        """ This method handels the logout requests from Users
+
+        Returns:
+            HttpResponseRedirect: Redirects to the url in the argument
+        """
+        logout(request)
+        return redirect("/login")

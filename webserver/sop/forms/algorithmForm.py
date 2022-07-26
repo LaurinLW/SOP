@@ -1,5 +1,5 @@
 from django import forms
-from models.algorithmModel import AlgorithmModel
+from ..models.algorithmModel import AlgorithmModel
 
 
 class AlgorithmForm(forms.ModelForm):
@@ -10,4 +10,11 @@ class AlgorithmForm(forms.ModelForm):
         """ The Meta class contains the Meta-information about the Form
         """
         model = AlgorithmModel
-        forms = ("name", "category", "file")
+        fields = ("name", "file")
+
+    def save(self, commit=True):
+        algorithm = super(AlgorithmForm, self).save(commit=False)
+        algorithm.creator = self.creator
+        if commit:
+            algorithm.save()
+        return algorithm

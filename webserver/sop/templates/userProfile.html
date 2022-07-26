@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<form method="GET">
+
+    <button 
+			style="position:fixed;width:350px;right: 10px; height:60px;top:20%;" 
+			type="button" 
+            onclick="location.href='/uploadAlgorithm'">
+			<p style="font-size: large;">upload new Algorithm</p> 
+    </button>
+
+    <button 
+			style="position:fixed;width:350px;right: 10px; height:60px;top:30%;" 
+			type="button" 
+            onclick="location.href='/uploadDataset'">
+			<p style="font-size: large;">upload new Dataset</p> 
+    </button>
+    
+    <div style="position:fixed;right:90%;top:20%">
+        <label for="username" id="username">
+            <p>username: {{username}}</p>
+        </label>
+    </div>
+
+    <div style="position:fixed;right:30%;top:20%">
+        <label for="email" id="email">
+            <p>email: {{email}}</p>
+        </label>
+    </div>
+
+    
+
+
+</form>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div style="position:fixed;left:10%;top:40%;">
+        {% for algo in algorithm %}
+            {{algo.name}}
+            <button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button>
+            <br>
+        {% endfor %}
+    </div>
+
+    <div style="position:fixed;left:50%;top:40%;">
+        {% for dataset in datasets %}
+            {{dataset.name}}
+            <button type="submit" name="delete_dataset" value="{{dataset.id}}">delete</button>
+            <br>
+        {% endfor %}
+    </div>
+</form>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from models.subspaceModel import SubspaceModel
+from ..models.subspaceModel import SubspaceModel
 
 
 class SubspaceForm(forms.ModelForm):
@@ -10,4 +10,4 @@ class SubspaceForm(forms.ModelForm):
         """ The Meta class contains the Meta-information about the Form
         """
         model = SubspaceModel
-        forms = ()
+        fields = ()

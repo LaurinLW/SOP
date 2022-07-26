@@ -7,5 +7,5 @@ class DatasetModel(models.Model):
         It contains the essentail fields and data that is stored in the database.
     """
     name = models.CharField(max_length=50)
-    file = models.FileField()
+    file = models.FileField(upload_to='sop/views/user_datasets/')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True)

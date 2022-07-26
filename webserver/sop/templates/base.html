@@ -1,0 +1,32 @@
+<head>
+    <title>{% block title %}SOP Prototyp{% endblock %}</title>
+</head>
+<body>
+    <div id="topbar" style="position: fixed; width: 100%; height: 9%; background-color: rgb(41, 42, 43); top: 0%; left: 0%">
+        {% block topbar %}
+			<button 
+			style="position:fixed;width:18%;height:7%;top:1%;left:1%" 
+			type="button" onclick="location.href='/home'">
+			Home </button>
+			<button 
+			style="position:fixed;width:18%;height:7%;top:1%;left:20%" 
+			type="button" onclick="location.href='/newExperiment'">
+			New Experiment </button>
+			<button 
+			style="position:fixed;width:18%;height:7%;top:1%;right:20%" 
+			type="button" onclick="location.href='/profil'">
+			Profil </button>
+			<button 
+			style="position:fixed;width:18%;height:7%;top:1%;right:1%" 
+			type="button" onclick="location.href='/logout'">
+			Logout </button>
+        {% endblock %}
+    </div>
+
+    <div id="content" style="position:fixed; left: 1%; top: 10%; height: 85%; width: 99%; overflow-y: auto" >
+        {% block content %}
+        
+		{% endblock %}
+    </div>
+</body>
+</html>

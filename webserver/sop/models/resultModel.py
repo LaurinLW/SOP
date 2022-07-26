@@ -1,6 +1,6 @@
 from django.db import models
 from .subspaceModel import SubspaceModel
-from .algorithmModel import AlgorithmModel
+from .versionModel import VersionModel
 
 
 class ResultModel(models.Model):
@@ -9,4 +9,4 @@ class ResultModel(models.Model):
     """
     resultFile = models.FileField()
     subspace = models.ForeignKey(SubspaceModel, on_delete=models.CASCADE)
-    algorithm = models.ForeignKey(AlgorithmModel, on_delete=models.CASCADE)
+    version = models.ForeignKey(VersionModel, on_delete=models.CASCADE)

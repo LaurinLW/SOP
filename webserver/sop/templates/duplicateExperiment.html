@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+			<form method="post">
+                {% csrf_token %}
+                {% if messages %}
+                {% for m in messages %}
+                <p style="color: red;">{{m}}</p>
+                {% endfor %}
+                {% endif %}
+                <p><label for="name">Experiment name:</label>
+                <input type="text" id="name" name="name" value="{{name}}-Duplicate"></p>
+
+                <br>
+                <p><label for="repetitions">Repetitions:</label>
+                <input type="text" id="repetitions" name="repetitions" value="1"></p>
+
+                <br>
+                <p>Subspace Dimension:</p>
+                <p><label for="numberSubspaces">numberSubspaces:</label>
+                <input type="text" id="numberSubspaces" name="numberSubspaces" value="{{version.numberSubspaces}}"></p>
+                <p><label for="minDimension">minDimension:</label>
+                <input type="text" id="minDimension" name="minDimension" value="{{version.minDimension}}"></p>
+                <p><label for="maxDimension">maxDimension:</label>
+                <input type="text" id="maxDimension" name="maxDimension" value="{{version.maxDimension}}"></p>
+
+                <br>
+                <p><label for="seed">Initial Seed:</label>
+                <input type="text" id="seed" name="seed" value="{{version.seed}}"></p>
+
+                <br>
+                <p>Select Dataset</p>
+                <select name="dataset" id="dataset">
+                {% for dataset in Datasets %}
+                    <option value="{{dataset.id}}">{{dataset.name}}</option>
+                {% endfor %}
+                </select>
+
+                <br>
+                <p>Select from the algorithms</p>
+                {% for algo in Algorithms %}
+                <table>
+                    <tr>
+                        {% if algo in version.algorithms.all %}
+                        <td><div><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}" checked>{{algo.name}}</div></td>
+                        {% else %}
+                        <td><div><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}">{{algo.name}}</div></td>   
+                        {% endif %}
+                        {% for a in data %}
+                            {% for id, value in a.items %}
+                                {% if id == "ID" and value == algo.id and algo not in version.algorithms.all %}
+                                    {% for para, default in a.items %}
+                                        {% if para != "ID" %}
+                                        <td>{{para}} = </td>
+                                        <td><input type="text" id="{{algo.id}}.parameters:{{para}}" name="{{algo.id}}.parameters:{{para}}" value="{{default}}"/></td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                                {% else %}
+                                {% for b in selected_data %}
+                                    {% for b_id, b_value in b.items %}
+                                        {% if b_id == id and b_value == value and b_value == algo.id %}
+                                            {% for b_para, b_default in b.items %}
+                                                {% if b_para != "ID" and b_para != "import" %}
+                                                <td>{{b_para}} = </td>
+                                                <td><input type="text" id="{{algo.id}}.parameters:{{b_para}}" name="{{algo.id}}.parameters:{{b_para}}" value="{{b_default}}"/></td>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                {% endfor %}
+                </table>
+
+                <br>
+                <p><input type="submit" value="Create"></p>
+            </form>
+{% endblock %}
