@@ -1,5 +1,5 @@
 from django import forms
-from models.resultModel import ResultModel
+from ..models.resultModel import ResultModel
 
 
 class ResultForm(forms.ModelForm):
@@ -10,4 +10,4 @@ class ResultForm(forms.ModelForm):
         """ The Meta class contains the Meta-information about the Form
         """
         model = ResultModel
-        forms = ()
+        fields = ()

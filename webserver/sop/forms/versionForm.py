@@ -1,5 +1,5 @@
 from django import forms
-from models.versionModel import VersionModel
+from ..models.versionModel import VersionModel
 
 
 class VersionForm(forms.ModelForm):
@@ -10,4 +10,15 @@ class VersionForm(forms.ModelForm):
         """ The Meta class contains the Meta-information about the Form
         """
         model = VersionModel
-        forms = ()
+        fields = ("seed", "minDimension", "maxDimension", "numberSubspaces")
+
+    def save(self, commit=True):
+        version = super(VersionForm, self).save(commit=False)
+        version.experiment = self.experiment
+        version.runs = 0
+        version.edits = 1
+        version.progress = 0
+        version.status = "paused"
+        if commit:
+            version.save()
+        return version

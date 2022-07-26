@@ -8,6 +8,6 @@ class AlgorithmModel(models.Model):
     """
     name = models.CharField(max_length=50)
     category = models.CharField(max_length=50)
-    parameters = models.JSONField()
-    file = models.FileField()
+    parameters = models.JSONField(null=True)
+    file = models.FileField(upload_to='sop/views/user_algorithms/')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True)

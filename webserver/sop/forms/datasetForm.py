@@ -1,5 +1,5 @@
 from django import forms
-from models.datasetModel import DatasetModel
+from ..models.datasetModel import DatasetModel
 
 
 class DatasetForm(forms.ModelForm):
@@ -10,4 +10,11 @@ class DatasetForm(forms.ModelForm):
         """ The Meta class contains the Meta-information about the Form
         """
         model = DatasetModel
-        forms = ("name", "file")
+        fields = ("name", "file")
+
+    def save(self, commit=True):
+        dataset = super(DatasetForm, self).save(commit=False)
+        dataset.creator = self.creator
+        if commit:
+            dataset.save()
+        return dataset

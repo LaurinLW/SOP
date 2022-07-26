@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+			<form method="post">
+                {% csrf_token %}
+                {% if messages %}
+                {% for m in messages %}
+                <p style="color: red;">{{m}}</p>
+                {% endfor %}
+                {% endif %}
+                <p><label for="name">Experiment name:</label>
+                <input type="text" id="name" name="name"></p>
+
+                <br>
+                <p><label for="repetitions">Repetitions:</label>
+                <input type="text" id="repetitions" name="repetitions"></p>
+
+                <br>
+                <p>Subspace Dimension:</p>
+                <p><label for="numberSubspaces">numberSubspaces:</label>
+                <input type="text" id="numberSubspaces" name="numberSubspaces"></p>
+                <p><label for="minDimension">minDimension:</label>
+                <input type="text" id="minDimension" name="minDimension"></p>
+                <p><label for="maxDimension">maxDimension:</label>
+                <input type="text" id="maxDimension" name="maxDimension"></p>
+
+                <br>
+                <p><label for="seed">Initial Seed:</label>
+                <input type="text" id="seed" name="seed"></p>
+
+                <br>
+                <p>Select Dataset</p>
+                <select name="dataset" id="dataset">
+                {% for dataset in Datasets %}
+                    <option value="{{dataset.id}}">{{dataset.name}}</option>
+                {% endfor %}
+                </select>
+
+                <br>
+                <p>Select from the Algorithms</p>
+                {% for algo in Algorithms %}
+                <table>
+                    <tr>
+                        <td><div><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}">{{algo.name}}</div></td>
+                        {% for a in data %}
+                            {% for id, value in a.items %}
+                                {% if id == "ID" and value == algo.id %}
+                                <div>
+                                    {% for para, default in a.items %}
+                                        {% if para != "ID" %}
+                                        <td>{{para}} = </td>
+                                        <td><input type="text" id="{{algo.id}}.parameters:{{para}}" name="{{algo.id}}.parameters:{{para}}" value="{{default}}"/></td>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                {% endfor %}
+                </table>
+
+                <br>
+                <p><input type="submit" value="Create"></p>
+            </form>
+{% endblock %}

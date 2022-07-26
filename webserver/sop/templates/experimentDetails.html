@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2> Details </h2>
+    
+    <div> 
+        <p> Name: {{Experiment.name}} </p>
+        <p> Status: {{Version.status}} </p>
+        <p> Progress: {{Version.progress}}%</p>
+        <p> Seed: {{Version.seed}}</p>
+        <p> Subspace Dimensions: Number of Subspaces: {{Version.numberSubspaces}}  min: {{Version.minDimension}}  max: {{Version.maxDimension}}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button 
+        style="position:absolute;width:12vw;height:12vh;top:5%;right:1%" 
+        type="submit" id="action" name="action" value="delete">
+        Delete the experiment </button>
+
+        <button 
+        style="position:absolute;width:12vw;height:12vh;top:25%;right:1%" 
+        type="submit" id="action" name="action" value="start">
+        Start the experiment </button>
+
+        <button 
+        style="position:absolute;width:12vw;height:12vh;top:45%;right:1%" 
+        type="submit" id="action" name="action" value="abort">
+        Stop the experiment </button>
+
+        <button 
+        style="position:absolute;width:12vw;height:12vh;top:65%;right:1%" 
+        type="submit" id="action" name="action" value="iterate">
+        New iteration </button>
+
+        <div style="position:absolute;top:1%;right:20%;">
+            <p>Select Version</p>
+            <select name="show" id="show">
+            {% for ver in Versions %}
+                {% if Version.edits == ver.edits %}
+                    {% if Version.runs == ver.runs %}
+                    <option value="{{ver.edits}}.{{ver.runs}}" selected>{{ver.edits}}.{{ver.runs}}</option>
+                    {% endif %}
+                {% endif %}
+                <option value="{{ver.edits}}.{{ver.runs}}">{{ver.edits}}.{{ver.runs}}</option>
+            {% endfor %}
+            </select>
+            <input type="submit" value="select">
+        </div>
+    </form> 
+
+    <button 
+    style="position:fixed;width:12vw;height:12vh;bottom:1%;right:1%" 
+    type="button" onclick="location.href='/edit/{{Version.experiment.id}}/{{Version.edits}}.{{Version.runs}}'">
+    Edit </button>
+
+    <button 
+    style="position:fixed;width:12vw;height:12vh;bottom:1%;right:15%" 
+    type="button" onclick="location.href='/duplicate/{{Version.experiment.id}}/{{Version.edits}}.{{Version.runs}}'">
+    Duplicate </button>
+{% endblock %}
