@@ -32,11 +32,13 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
             selected_data = json.loads(version.parameterSettings)
         else:
             selected_data = None
-        data = "["
+        data = "{"
         for algo in possible_algorithms:
+            import_string = algo.file.path.replace("\\", "/")
+            data += '"' + import_string + '":'
             data += algo.parameters + ","
         data = data[:-1]
-        data += "]"
+        data += "}"
         data = json.loads(data)
         return render(request, self.template_name, {"Algorithms": (possible_algorithms | pyod_algorithms), "name": experiment.name,
                       "Datasets": possible_datasets, "version": version, "selected_data": selected_data, "data": data})

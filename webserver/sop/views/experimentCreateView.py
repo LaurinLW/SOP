@@ -54,6 +54,7 @@ class ExperimentCreateView(LoginRequiredMixin, View):
                 version_form.experiment = exp
                 ver = version_form.save()
                 ver.parameterSettings = ParameterHandler().getFullJsonString(request, ver)
+                print(ver.parameterSettings)
                 ver.save()
                 reps = int(request.POST.get("repetitions", 1)) - 1
                 for a in range(reps):
