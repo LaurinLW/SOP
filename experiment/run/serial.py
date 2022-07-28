@@ -8,8 +8,7 @@ from typing import Optional
 
 
 class Serial(Runner):
-    """A Runner implementation that runs one Job at a time.
-    """
+    """A Runner implementation that runs one Job at a time."""
 
     def __init__(self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event):
         """constructor

@@ -1,13 +1,14 @@
 class Experiment:
-
-    def __init__(self,
-                 path_working_directory: str,
-                 seed: int,
-                 min_subspace_dim: int,
-                 max_subspace_dim: int,
-                 num_subspace: int,
-                 experiment_id: str,
-                 connection: str) -> None:
+    def __init__(
+        self,
+        path_working_directory: str,
+        seed: int,
+        min_subspace_dim: int,
+        max_subspace_dim: int,
+        num_subspace: int,
+        experiment_id: str,
+        connection: str,
+    ) -> None:
         """constructor
 
         Args:
@@ -22,6 +23,5 @@ class Experiment:
         pass
 
     def stop(self) -> None:
-        """This method signals to pipeline stages that they should clean up and terminate.
-        """
+        """This method signals to pipeline stages that they should clean up and terminate."""
         pass
