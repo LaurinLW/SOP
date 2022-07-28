@@ -7,10 +7,11 @@ from pyod.models.knn import KNN
 
 
 class JobTestCase(unittest.TestCase):
-
     def setUp(self) -> None:
         self.data_shape = (10, 3)
-        self.data, y = generate_data(train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1])
+        self.data, y = generate_data(
+            train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1]
+        )
         self.dimension_names = ["1", "2", "3"]
         self.subspace = Subspace(self.data, self.dimension_names)
         self.model = KNN()

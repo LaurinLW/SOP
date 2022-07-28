@@ -23,7 +23,7 @@ class Result:
         Raises:
             Exception that occured during the execution of the job.
 
-        Returns:
+         Returns:
             job.Job: Job that was successfully executed.
         """
         if self._e is None:

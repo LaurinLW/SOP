@@ -12,7 +12,6 @@ import time
 
 
 class SerialTestCase(unittest.TestCase):
-
     def setUp(self) -> None:
         self.data_shape = (10, 3)
         data, y = generate_data(train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1])
