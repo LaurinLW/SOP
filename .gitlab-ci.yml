@@ -1,8 +1,30 @@
-image: python:latest
-
-before_script:
-  - pip install flake8
+stages:
+  - test
+  - deploy
 
 test:
+  image: python:latest
+  stage: test
+  before_script:
+    - pip install flake8
+    - pip install -r requirements.txt
   script:
     - flake8 --config setup.cfg webserver experiment
+    - python -m unittest experiment_tests/*.py
+    - cd webserver && python manage.py test sop.tests
+
+deploy:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  image: alpine:latest
+  stage: deploy
+  before_script:
+    - chmod og= $SSH_KEY
+    - apk update && apk add openssh-client
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_IP $SSH_HOST_KEY" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - ssh -i $SSH_KEY $SSH_USER@$SSH_IP ./script.sh
+
