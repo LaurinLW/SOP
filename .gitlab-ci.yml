@@ -3,7 +3,7 @@ stages:
   - deploy
 
 test:
-  image: python:latest
+  image: python:3.10-slim
   stage: test
   before_script:
     - pip install flake8
