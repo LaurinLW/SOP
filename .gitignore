@@ -1,10 +1,11 @@
 __pycache__/
 
 *.sqlite3
-.vscode/
-experiment_tests/export
+
 migrations/
 user_algorithms/
 user_datasets/
+.vscode/
+experiment_tests/export/
 
 env

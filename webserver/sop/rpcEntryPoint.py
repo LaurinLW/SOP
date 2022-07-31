@@ -26,22 +26,22 @@ def receiveProgress(percent, version_id):
 @rpc_method
 def receiveError(error_message, version_id):
     try:
-        VersionModel.objects.get(pk=version_id)
+        version = VersionModel.objects.get(pk=version_id)
+        version.error = error_message
+        version.save()
     except VersionModel.DoesNotExist:
         return False
-    # todo show error to user, maybe new attribute in the database?
     return True
 
 
 @rpc_method
-def receiveResult(file, version_id, pickedColumns):
+def receiveResult(file, version_id):
     try:
         version = VersionModel.objects.get(pk=version_id)
     except VersionModel.DoesNotExist:
         return False
     subspace = SubspaceForm()
     result = ResultForm()
-    subspace.pickedColumns = pickedColumns
     subspace.dataset = version.experiment.dataset
     result.resultFile = file
     result.subspace = subspace

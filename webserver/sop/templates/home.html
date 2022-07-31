@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-			<table> 
-            {% for exp in Experiments %}
-                <tr> 
-                    <td> {{exp.name}} </td>
-                    <td> {% if exp.latestStatus == "paused" %}
-                         <span style="background-color:yellow; display:block; height: 2vh; width: 2vh; border-radius:50%;"></span> 
-                         {% elif exp.latestStatus == "running" %}
-                         <span style="background-color:green; display:block; height: 2vh; width: 2vh; border-radius:50%;"></span>
-                         {% else %}
-                         <span style="background-color:red; display:block; height: 2vh; width: 2vh; border-radius:50%;"></span>
-                         {% endif %}
-                    </td>
-                    <td> <a href="details/{{exp.id}}/{{exp.latestVersion}}"> Details </a> </td>
-                    <td> <a href="dashboard/{{exp.id}}/{{exp.latestVersion}}"> Dashboard </a> </td>
-                </tr>
-            {% endfor %}
-            <table>
-{% endblock %}
+<table style="font-size: 23px;">
+    {% for exp in Experiments %}
+    <tr>
+        <td style="padding-right: 1vw;"> {{exp.name}} </td>
+        <td> {% if exp.latestStatus == "paused" %}
+            <span style="background-color:yellow; display:block; height: 2.5vh; width: 2.5vh; border-radius:50%;"></span>
+            {% elif exp.latestStatus == "running" %}
+            <span style="background-color:green; display:block; height: 2.5vh; width: 2.5vh; border-radius:50%;"></span>
+            {% else %}
+            <span style="background-color:red; display:block; height: 2.5vh; width: 2.5vh; border-radius:50%;"></span>
+            {% endif %}
+        </td>
+        <td style="padding-right: 1vw; padding-left: 1vw;"> <a href="details/{{exp.id}}/{{exp.latestVersion}}"> Details </a> </td>
+        <td style="padding-right: 1vw;"> <a href="dashboard/{{exp.id}}/{{exp.latestVersion}}"> Dashboard </a> </td>
+    </tr>
+    {% endfor %}
+    <table>
+        {% endblock %}

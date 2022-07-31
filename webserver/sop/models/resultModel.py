@@ -8,5 +8,5 @@ class ResultModel(models.Model):
         It contains the essentail fields and data that is stored in the database.
     """
     resultFile = models.FileField()
-    subspace = models.ForeignKey(SubspaceModel, on_delete=models.CASCADE)
+    subspace = models.ForeignKey(SubspaceModel, on_delete=models.CASCADE, null=True)
     version = models.ForeignKey(VersionModel, on_delete=models.CASCADE)

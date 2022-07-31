@@ -1,0 +1,37 @@
+.collapsible {
+    background-color: darkgray;
+    color: rgb(71, 71, 71);
+    cursor: pointer;
+    padding: 1%;
+    width: 80%;
+    border: none;
+    text-align: left;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.active,
+.collapsible:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+.content {
+    display: none;
+    overflow: hidden;
+    text-align: left;
+    padding: 1%;
+    width: 78%;
+    background-color: #f1f1f1;
+}
+
+.collapsible:after {
+    content: '\2BC7';
+    font-size: 13px;
+    color: white;
+    float: right;
+    margin-left: 5px;
+}
+
+.active:after {
+    content: "\2BC6";
+}

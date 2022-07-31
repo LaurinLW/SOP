@@ -1,77 +1,82 @@
 {% extends "base.html" %}
+{% load getTemplate %}
 
 {% block content %}
-			<form method="post">
-                {% csrf_token %}
-                {% if messages %}
-                {% for m in messages %}
-                <p style="color: red;">{{m}}</p>
-                {% endfor %}
-                {% endif %}
-                <p><label for="name">Experiment name:</label>
-                <input type="text" id="name" name="name" value="{{name}}-Duplicate"></p>
+<form method="post">
+    {% csrf_token %}
+    {% if messages %}
+    {% for m in messages %}
+    <p style="color: red;">{{m}}</p>
+    {% endfor %}
+    {% endif %}
+    <p><label for="name">Experiment name:</label>
+        <input type="text" id="name" name="name" value="{{name}}-Duplicate">
+    </p>
 
-                <br>
-                <p><label for="repetitions">Repetitions:</label>
-                <input type="text" id="repetitions" name="repetitions" value="1"></p>
+    <br>
+    <p><label for="repetitions">Repetitions:</label>
+        <input type="text" id="repetitions" name="repetitions" value="1">
+    </p>
 
-                <br>
-                <p>Subspace Dimension:</p>
-                <p><label for="numberSubspaces">numberSubspaces:</label>
-                <input type="text" id="numberSubspaces" name="numberSubspaces" value="{{version.numberSubspaces}}"></p>
-                <p><label for="minDimension">minDimension:</label>
-                <input type="text" id="minDimension" name="minDimension" value="{{version.minDimension}}"></p>
-                <p><label for="maxDimension">maxDimension:</label>
-                <input type="text" id="maxDimension" name="maxDimension" value="{{version.maxDimension}}"></p>
+    <br>
+    <p>Subspace Dimension:</p>
+    <p><label for="numberSubspaces">numberSubspaces:</label>
+        <input type="text" id="numberSubspaces" name="numberSubspaces" value="{{version.numberSubspaces}}">
+    </p>
+    <p><label for="minDimension">minDimension:</label>
+        <input type="text" id="minDimension" name="minDimension" value="{{version.minDimension}}">
+    </p>
+    <p><label for="maxDimension">maxDimension:</label>
+        <input type="text" id="maxDimension" name="maxDimension" value="{{version.maxDimension}}">
+    </p>
 
-                <br>
-                <p><label for="seed">Initial Seed:</label>
-                <input type="text" id="seed" name="seed" value="{{version.seed}}"></p>
+    <br>
+    <p><label for="seed">Initial Seed:</label>
+        <input type="text" id="seed" name="seed" value="{{version.seed}}">
+    </p>
 
-                <br>
-                <p>Select Dataset</p>
-                <select name="dataset" id="dataset">
-                {% for dataset in Datasets %}
-                    <option value="{{dataset.id}}">{{dataset.name}}</option>
-                {% endfor %}
-                </select>
+    <br>
+    <p>Select Dataset</p>
+    <select name="dataset" id="dataset">
+        {% for dataset in Datasets %}
+        <option value="{{dataset.id}}">{{dataset.name}}</option>
+        {% endfor %}
+    </select>
 
-                <br>
-                <p>Select from the algorithms</p>
-                {% for algo in Algorithms %}
-                <table>
-                    <tr>
-                        {% if algo in version.algorithms.all %}
-                        <td><div><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}" checked>{{algo.name}}</div></td>
-                        {% else %}
-                        <td><div><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}">{{algo.name}}</div></td>   
-                        {% endif %}
-                        {% for element in data.items %}
-                            {% for a in element %}
-                                {% for id, value in a.items %}
-                                        {% if id == "ID" and value == algo.id and algo not in version.algorithms.all %}
-                                            {% for para, default in a.items %}
-                                                {% if para != "ID" %}
-                                                <td>{{para}} = </td>
-                                                <td><input type="text" id="{{algo.id}}.parameters:{{para}}" name="{{algo.id}}.parameters:{{para}}" value="{{default}}"/></td>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </tr>
-                                        {% elif id == "ID" and value == algo.id and algo in version.algorithms.all %}
-                                            {% for para, default in a.items %}
-                                                {% if para != "ID" %}
-                                                <td>{{para}} = </td>
-                                                <td><input type="text" id="{{algo.id}}.parameters:{{para}}" name="{{algo.id}}.parameters:{{para}}" value="{{default}}"/></td>
-                                                {% endif %}
-                                            {% endfor %}
-                                        {% endif %}
-                                {% endfor %}
-                            {% endfor %}
-                        {% endfor %}
-                {% endfor %}
-                </table>
-
-                <br>
-                <p><input type="submit" value="Create"></p>
-            </form>
+    <br>
+    <p>Select from the algorithms</p>
+    {% for algo in Algorithms %}
+    {% if algo in version.algorithms.all %}
+    <button type="button" class="collapsible">
+        <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}" checked> {{algo.name}}</nobr>
+    </button>
+    <div class="content">
+        {% for id, value in selected_data|get:algo.file.name %}
+        {% if id != "ID" %}
+        <nobr>
+            <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
+                    value="{{value}}" style="width: 20%;" /></p>
+        </nobr>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <button type="button" class="collapsible">
+        <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}"> {{algo.name}}</nobr>
+    </button>
+    <div class="content">
+        {% for id, value in data|get:algo.file.name %}
+        {% if id != "ID" %}
+        <nobr>
+            <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
+                    value="{{value}}" style="width: 20%;" /></p>
+        </nobr>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+    <br>
+    <p><input type="submit" value="Create"></p>
+</form>
 {% endblock %}

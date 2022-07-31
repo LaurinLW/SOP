@@ -8,6 +8,7 @@ from sop.models.versionModel import VersionModel
 from sop.models.algorithmModel import AlgorithmModel
 from sop.handler.parameterHandler import ParameterHandler
 from sop.handler.inputHandler import InputHandler
+from django.core.exceptions import SuspiciousFileOperation
 
 
 class ExperimentEditView(LoginRequiredMixin, View):
@@ -26,19 +27,23 @@ class ExperimentEditView(LoginRequiredMixin, View):
         version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
         possible_algorithms = AlgorithmModel.objects.all().filter(creator_id=request.user.id)  # own algorithms
         pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None)  # pyod algorithms
+        algorithms = (possible_algorithms | pyod_algorithms)
         if version.parameterSettings != "":
             selected_data = json.loads(version.parameterSettings)
         else:
             selected_data = None
         data = "{"
-        for algo in possible_algorithms:
-            import_string = algo.file.path.replace("\\", "/")
+        for algo in algorithms:
+            try:
+                import_string = algo.file.path
+            except SuspiciousFileOperation:
+                import_string = algo.file.name
             data += '"' + import_string + '":'
             data += algo.parameters + ","
         data = data[:-1]
         data += "}"
         data = json.loads(data)
-        return render(request, self.template_name, {"Algorithms": (possible_algorithms | pyod_algorithms), "name": experiment.name,
+        return render(request, self.template_name, {"Algorithms": algorithms, "name": experiment.name,
                       "version": version, "selected_data": selected_data, "data": data})
 
     def post(self, request, *args, **kwargs):
@@ -59,7 +64,12 @@ class ExperimentEditView(LoginRequiredMixin, View):
             newVersion.numberSubspaces = request.POST.get("numberSubspaces", newVersion.numberSubspaces)
             newVersion.seed = request.POST.get("seed", newVersion.seed)
             newVersion.save()
-            newVersion.parameterSettings = ParameterHandler().getFullJsonString(request, newVersion)
+            newVersion.error = None
+            parameters = ParameterHandler().getFullJsonString(request, newVersion)
+            if type(parameters) != str:
+                newVersion.delete()
+                return redirect("/edit/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))
+            newVersion.parameterSettings = parameters
             newVersion.save()
             experiment.latestVersion = str(newVersion.edits)+"."+str(newVersion.runs)
             experiment.name = request.POST.get("name", experiment.name)
