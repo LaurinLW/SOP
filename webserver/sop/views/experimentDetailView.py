@@ -31,7 +31,7 @@ class ExperimentDetailView(View, LoginRequiredMixin):
         Returns:
             HttpResponseRedirect: Redirects to one of the Versions
             -- or --
-            HttpResponseRedirect: Redirects to the new Version
+            HttpResponseRedirect: Redirects to the home view
         """
         experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
         showReq = request.POST.get("show", 0)

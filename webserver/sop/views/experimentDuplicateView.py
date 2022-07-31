@@ -9,6 +9,7 @@ from sop.models.versionModel import VersionModel
 from sop.models.algorithmModel import AlgorithmModel
 from sop.models.datasetModel import DatasetModel
 from sop.handler.inputHandler import InputHandler
+from django.core.exceptions import SuspiciousFileOperation
 
 
 class ExperimentDuplicateView(LoginRequiredMixin, View):
@@ -28,19 +29,23 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
         possible_algorithms = AlgorithmModel.objects.all().filter(creator_id=request.user.id)  # own algorithms
         pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None)  # pyod algorithms
         possible_datasets = DatasetModel.objects.all().filter(creator_id=request.user.id)  # own datasets
+        algorithms = (possible_algorithms | pyod_algorithms)
         if version.parameterSettings != "":
             selected_data = json.loads(version.parameterSettings)
         else:
             selected_data = None
         data = "{"
-        for algo in possible_algorithms:
-            import_string = algo.file.path.replace("\\", "/")
+        for algo in algorithms:
+            try:
+                import_string = algo.file.path
+            except SuspiciousFileOperation:
+                import_string = algo.file.name
             data += '"' + import_string + '":'
             data += algo.parameters + ","
         data = data[:-1]
         data += "}"
         data = json.loads(data)
-        return render(request, self.template_name, {"Algorithms": (possible_algorithms | pyod_algorithms), "name": experiment.name,
+        return render(request, self.template_name, {"Algorithms": algorithms, "name": experiment.name,
                       "Datasets": possible_datasets, "version": version, "selected_data": selected_data, "data": data})
 
     def post(self, request, *args, **kwargs):
@@ -61,6 +66,7 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
             newExperiment.save()
             newVersion = version
             newVersion.pk = None
+            newVersion.error = None
             newVersion.edits = 1
             newVersion.runs = 0
             newVersion.status = "paused"
@@ -71,7 +77,12 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
             newVersion.numberSubspaces = request.POST.get("numberSubspaces", newVersion.numberSubspaces)
             newVersion.numberSubspaces = request.POST.get("numberSubspaces", newVersion.numberSubspaces)
             newVersion.save()
-            newVersion.parameterSettings = ParameterHandler().getFullJsonString(request, newVersion)
+            parameters = ParameterHandler().getFullJsonString(request, newVersion)
+            if type(parameters) != str:
+                newExperiment.delete()
+                newVersion.delete()
+                return redirect(f'/duplicate/{kwargs.get("detail_id")}/{kwargs.get("edits")}.{kwargs.get("runs")}')
+            newVersion.parameterSettings = parameters
             newVersion.save()
             return redirect("/details/"+str(newExperiment.id)+"/"+newExperiment.latestVersion)
         return redirect("/duplicate/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))

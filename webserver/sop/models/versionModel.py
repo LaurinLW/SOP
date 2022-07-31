@@ -19,3 +19,4 @@ class VersionModel(models.Model):
     pid = models.IntegerField(null=True)
     algorithms = models.ManyToManyField(AlgorithmModel)
     experiment = models.ForeignKey(ExperimentModel, on_delete=models.CASCADE)
+    error = models.CharField(max_length=100, null=True)
