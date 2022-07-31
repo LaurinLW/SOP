@@ -1,6 +1,6 @@
-import experiment
-import export
-import connection.serverconnection as sc
+import experiment.export.exporter as ex
+import experiment.connection.serverconnection as sc
+from experiment.experiment import Experiment
 
 
 class ProgressControl:
@@ -10,7 +10,7 @@ class ProgressControl:
     After the last export the ProgressControl notifies the Experiment that it should stop via the stop()-method.
     """
 
-    def __init__(self, experiment: experiment.Experiment, num_model_runs: dict[str, int], server: sc.ServerConnection, exporter: export.Exporter) -> None:
+    def __init__(self, experiment: Experiment, num_model_runs: dict[str, int], server: sc.ServerConnection) -> None:
         """contructor
 
         Args:
@@ -45,5 +45,13 @@ class ProgressControl:
 
         Returns:
             int: progress in percent as integer
+        """
+        pass
+
+    def register(self, exporter: ex.Exporter):
+        """Registers an exporter that will be managed by the ProgressControl
+
+        Args:
+            exporter (ex.Exporter): Exporter that should be registered
         """
         pass
