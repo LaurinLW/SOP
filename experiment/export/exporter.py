@@ -25,10 +25,13 @@ class Exporter(PipelineStage, abc.ABC):
         pass
 
     @abc.abstractmethod
-    def finalize_single(self, dims: list[str]) -> None:
+    def finalize_single(self, dims: list[str]) -> str:
         """Exports single subspace.
 
         Args:
             dims (list[str]): list of dimensions of the export
+
+        Returns:
+            name of export
         """
         pass

@@ -62,7 +62,7 @@ class CSVExporter(Exporter):
             df.to_csv(os.path.join(self._path, f"subspace_result{self._next_export_id}.csv"))
             self._next_export_id += 1
 
-    def finalize_single(self, dims: list[str]):
+    def finalize_single(self, dims: list[str]) -> str():
         key = tuple(dims)
         export: pd.DataFrame
         try:
@@ -71,5 +71,9 @@ class CSVExporter(Exporter):
         except KeyError:
             return
 
-        export.to_csv(os.path.join(self._path, f"subspace_result{self._next_export_id}.csv"))
+        export_file_name = f"subspace_result{self._next_export_id}.csv"
+
+        export.to_csv(os.path.join(self._path, export_file_name))
         self._next_export_id += 1
+
+        return export_file_name

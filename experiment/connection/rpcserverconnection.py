@@ -18,6 +18,10 @@ class RPCServerConnection(ServerConnection):
         payload = self._create_payload("receiveError", [error, self._experiment_id])
         requests.post(self._server, json=payload).json()
 
+    def receive_result(self, file_name: str):
+        payload = self._create_payload("receiveResult", [file_name])
+        requests.post(self._server, json=payload).json()
+
     def _create_payload(self, method: str, parameters: list) -> dict:
         paylaod = {
             "method": method,
