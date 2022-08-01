@@ -38,7 +38,7 @@
         <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}" checked> {{algo.name}}</nobr>
     </button>
     <div class="content">
-        {% for id, value in selected_data|get:algo.file.name %}
+        {% for id, value in selected_data|get:algo.id %}
         {% if id != "ID" %}
         <nobr>
             <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
@@ -52,7 +52,7 @@
         <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}"> {{algo.name}}</nobr>
     </button>
     <div class="content">
-        {% for id, value in data|get:algo.file.name %}
+        {% for id, value in data|get:algo.id %}
         {% if id != "ID" %}
         <nobr>
             <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"

@@ -11,3 +11,5 @@ class AlgorithmModel(models.Model):
     parameters = models.JSONField(null=True)
     file = models.FileField(upload_to='sop/views/user_algorithms/')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    modul_name = models.CharField(max_length=50, null=True)
+    class_name = models.CharField(max_length=50, null=True)

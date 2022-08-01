@@ -3,7 +3,6 @@ from django.apps import AppConfig
 import os
 import pyod
 from django.db.models.signals import post_migrate
-import sys
 import importlib.util
 import pyod.models
 from django.db.utils import OperationalError
@@ -23,16 +22,17 @@ def create_pyod_algorithms(sender, **kwargs):
             if AlgorithmModel.objects.all().filter(creator=None).filter(name=a.replace(".py", "")).exists() is False:
                 spec = importlib.util.spec_from_file_location(a.replace(".py", ""), direc+os.path.sep+a)
                 foo = importlib.util.module_from_spec(spec)
-                if os.path.dirname(direc) not in sys.path:
-                    sys.path.append(os.path.dirname(direc))
                 foo.__package__ = "pyod.models"
                 spec.loader.exec_module(foo)
+                class_name = ""
                 try:
                     algo = getattr(foo, a.replace(".py", "").upper())
+                    class_name = a.replace(".py", "").upper()
                 except:
                     for method_name in method_name_list:
                         try:
                             algo = getattr(foo, method_name)
+                            class_name = method_name
                         except:
                             pass
                 parameters = inspect.getargspec(algo)
@@ -55,7 +55,9 @@ def create_pyod_algorithms(sender, **kwargs):
                 algoPara += "}"
                 new_algorithm.name = a.replace(".py", "")
                 new_algorithm.parameters = algoPara
-                new_algorithm.file.name = os.path.join(direc, a).replace(os.path.sep, "/")
+                new_algorithm.modul_name = f'sop.models.{a.replace(".py", "")}'
+                new_algorithm.class_name = class_name
+                print(new_algorithm.file.name)
                 new_algorithm.save()
                 # Add category
 
