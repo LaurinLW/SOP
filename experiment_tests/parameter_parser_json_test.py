@@ -1,36 +1,14 @@
+from typing import TextIO
 import unittest
+import os
 
-from django.forms import JSONField
 from experiment.supply.parser.parameter_parser_json import JsonParameterParser
 
 
 class ParameterParserJsonTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.input_json_file: JSONField = {
-            "window": {
-                "title": "Sample Konfabulator Widget",
-                "name": "main_window",
-                "width": 500,
-                "height": 500,
-            },
-            "image": {
-                "src": "Images/Sun.png",
-                "name": "sun1",
-                "hOffset": 250,
-                "vOffset": 250,
-                "alignment": "center",
-            },
-            "text": {
-                "data": "Click Here",
-                "size": 36,
-                "style": "bold",
-                "name": "text1",
-                "hOffset": 250,
-                "vOffset": 100,
-                "alignment": "center",
-                "onMouseUp": "sun1.opacity = (sun1.opacity / 100) * 90;",
-            },
-        }
+        test_dir = (os.path.sep).join((__file__.split(".")[0]).split(os.path.sep)[0:-1])
+        self.input_json_file: TextIO = open(os.path.join(test_dir, "test_resources", "parser_test_json.json"), "r")
         self.solution: dict = {
             "title": "Sample Konfabulator Widget",
             "name": "main_window",

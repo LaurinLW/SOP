@@ -1,4 +1,4 @@
-from django.forms import JSONField
+from typing import TextIO
 from pandas import DataFrame
 from queue import Queue
 from threading import Event, Thread
@@ -25,7 +25,7 @@ class JobSupplier(PipelineStage):
         seed: int,
         data: DataFrame,
         models: list[str],
-        parameters: JSONField,
+        parameterFile: TextIO,
         out: Queue,
         stop: Event,
     ) -> None:
@@ -47,10 +47,9 @@ class JobSupplier(PipelineStage):
         self.subspace_generator: SubspaceGenerator = SubspaceGenerator(
             number_subspaces, min_dimension, max_dimension, seed, data
         )
-        self.__job_generator = JobGenerator(models, parameters)
+        self.__job_generator = JobGenerator(models, parameterFile)
         self.__stop: Event = stop
         self.__out_queue: Queue = out
-        self.__queue_size_minus_amount_models: int = out.maxsize - 2 * len(models)
         self.__jobs_failed_to_add: list[Job] = list()
 
     def run(self) -> None:
