@@ -5,7 +5,7 @@ from sop.views import algorithmUploadView, datasetUploadView, experimentStopView
 from modernrpc.views import RPCEntryPoint
 
 urlpatterns = [
-    path('profil', profileView.ProfileView.as_view()),
+    path('profile', profileView.ProfileView.as_view()),
     path('login', loginView.LoginView.as_view()),
     path('register', registerView.RegisterView.as_view()),
     path('logout', logoutView.LogoutView.as_view()),

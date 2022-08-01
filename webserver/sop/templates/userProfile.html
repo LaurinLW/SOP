@@ -2,7 +2,8 @@
 
 
 {% block content %}
-<form method="GET">
+<form method="POST">
+    
 
     <button 
 			style="position:fixed;width:350px;right: 10px; height:60px;top:20%;" 
@@ -29,29 +30,101 @@
             <p>email: {{email}}</p>
         </label>
     </div>
-
     
-
-
-</form>
-
-<form method="POST">
+    <!-- Algorithm Pagination -->
     {% csrf_token %}
-
-    <div style="position:fixed;left:10%;top:40%;">
-        {% for algo in algorithm %}
-            {{algo.name}}
-            <button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button>
-            <br>
-        {% endfor %}
+    <div style="position:fixed;top:30%;left:3%;">
+        <table class="algo_table" >
+            <thead>
+              <tr>
+                <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">ID</th>
+                <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
+                <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Category</th>
+                <th style="padding-bottom: 40px; padding-right: 10px; font-size: 25px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for algo in algos %}
+                <tr>
+                  <td>{{ algo.id }}</td>
+                  <td>{{ algo.name }}</td>
+                  <td>{{ algo.category }}</td>
+                  <td><button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+        <div> 
+            {% if algos.has_other_pages %}
+                {% if algos.has_previous %}
+                    <a href="?algo_page={{ algos.previous_page_number }}">&laquo;</a>
+                {% endif %}
+            {% for i in algos.paginator.page_range %}
+                {% if algos.number == i %}
+                    <span style="color:red;">{{ i }}</span>
+                {% else %}
+                    <a href="?algo_page={{ i }}">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if algos.has_next %}
+                <a href="?algo_page={{ algos.next_page_number }}">&raquo;</a>
+            {% else %}
+                <span>&raquo;</span>
+            {% endif %}
+            {% endif %}
+        </div>
     </div>
 
-    <div style="position:fixed;left:50%;top:40%;">
-        {% for dataset in datasets %}
-            {{dataset.name}}
-            <button type="submit" name="delete_dataset" value="{{dataset.id}}">delete</button>
-            <br>
-        {% endfor %}
+    <!-- Dataset Pagination -->
+    <div style="position:fixed;top:30%;left:33%">
+        <table class="dataset_table" >
+            <thead>
+              <tr>
+                <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">ID</th>
+                <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
+                <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for data in datas %}
+                <tr>
+                  <td>{{ data.id }}</td>
+                  <td>{{ data.name }}</td>
+                  <td> <button type="submit" name="delete_dataset" value="{{data.id}}">delete</button></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+        <div> 
+            {% if algos.has_other_pages %}
+                {% if algos.has_previous %}
+                    <a href="?page={{ algos.previous_page_number }}">&laquo;</a>
+                {% endif %}
+            {% for i in algos.paginator.page_range %}
+                {% if algos.number == i %}
+                    <span style="color:red;">{{ i }}</span>
+                {% else %}
+                    <a href="?page={{ i }}">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if algos.has_next %}
+                <a href="?page={{ algos.next_page_number }}">&raquo;</a>
+            {% else %}
+                <span>&raquo;</span>
+            {% endif %}
+            {% endif %}
+        </div>
     </div>
+
+    <div>
+        {% if messages %}
+        <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
 </form>
 {% endblock %}
