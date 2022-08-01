@@ -69,7 +69,7 @@ class ExperimentCreateView(LoginRequiredMixin, View):
                     ver.save()
                     exp.latestVersion = str(ver.edits) + "." + str(ver.runs)
                     exp.save()
-                return redirect("/details/"+str(exp.id)+"/"+exp.latestVersion)
+                return redirect("/details/" + str(exp.id) + "/" + exp.latestVersion)
             else:
                 messages.warning(request, "There was a problem with your input form")
         return redirect("/newExperiment")

@@ -48,7 +48,7 @@ class Experiment:
 
         self._stop: threading.Event = threading.Event()
         # queue size should avoid loading to many subspaces into memory
-        self._q_supply_run: queue.Queue = queue.Queue(2*num_subspace)
+        self._q_supply_run: queue.Queue = queue.Queue(2 * num_subspace)
         self._q_run_export: queue.Queue = queue.Queue()
 
         self._export_dir = "export"

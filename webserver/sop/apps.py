@@ -20,7 +20,7 @@ def create_pyod_algorithms(sender, **kwargs):
     for a in os.listdir(direc):
         if not a.startswith("_") and a.replace(".py", "") not in ignore_list:
             if AlgorithmModel.objects.all().filter(creator=None).filter(name=a.replace(".py", "")).exists() is False:
-                spec = importlib.util.spec_from_file_location(a.replace(".py", ""), direc+os.path.sep+a)
+                spec = importlib.util.spec_from_file_location(a.replace(".py", ""), direc + os.path.sep + a)
                 foo = importlib.util.module_from_spec(spec)
                 foo.__package__ = "pyod.models"
                 spec.loader.exec_module(foo)
@@ -39,7 +39,7 @@ def create_pyod_algorithms(sender, **kwargs):
                 new_algorithm = AlgorithmModel.objects.create(category="")
                 algoPara = "{" + f"\"ID\": {new_algorithm.id},\n"
                 for i in range(1, len(parameters.args)):
-                    default_type = type(parameters.defaults[i-1])
+                    default_type = type(parameters.defaults[i - 1])
                     if default_type == int or default_type == float:
                         algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
                     elif default_type == bool:
@@ -47,7 +47,7 @@ def create_pyod_algorithms(sender, **kwargs):
                             algoPara += (f"\"{parameters.args[i]}\": true,\n")
                         else:
                             algoPara += (f"\"{parameters.args[i]}\": false,\n")
-                    elif parameters.defaults[i-1] is None:
+                    elif parameters.defaults[i - 1] is None:
                         algoPara += (f"\"{parameters.args[i]}\": null,\n")
                     else:
                         algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")

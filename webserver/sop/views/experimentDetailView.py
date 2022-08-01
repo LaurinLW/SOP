@@ -36,5 +36,5 @@ class ExperimentDetailView(View, LoginRequiredMixin):
         experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
         showReq = request.POST.get("show", 0)
         if showReq != 0:
-            return redirect("/details/"+str(experiment.id)+"/"+showReq)
+            return redirect("/details/" + str(experiment.id) + "/" + showReq)
         return redirect("/")

@@ -1,0 +1,13 @@
+FROM python:latest
+
+COPY ./requirements.txt ./requirements.txt
+
+RUN pip install -r requirements.txt
+
+RUN mkdir /experiment
+
+WORKDIR /experiment
+
+COPY ./experiment ./
+
+ENTRYPOINT python experimentstart.py

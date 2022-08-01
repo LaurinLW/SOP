@@ -2,6 +2,8 @@ from modernrpc.core import rpc_method
 from sop.models.versionModel import VersionModel
 from sop.forms.resultForm import ResultForm
 from sop.forms.subspaceForm import SubspaceForm
+import os
+import shutil
 
 
 @rpc_method
@@ -18,6 +20,9 @@ def receiveProgress(percent, version_id):
         return False
     if percent == 100:
         version.status = "finished"
+        working_dir = os.path.join(os.path.abspath(os.getcwd()), 'experimente', str(version.experiment.id) + '.' + str(version.edits) + '.' + str(version.runs))
+        if os.path.exists(working_dir):
+            shutil.rmtree(working_dir)
     version.progress = percent
     version.save()
     return True

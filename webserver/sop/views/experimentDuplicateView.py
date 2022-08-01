@@ -80,5 +80,5 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
                 return redirect(f'/duplicate/{kwargs.get("detail_id")}/{kwargs.get("edits")}.{kwargs.get("runs")}')
             newVersion.parameterSettings = parameters
             newVersion.save()
-            return redirect("/details/"+str(newExperiment.id)+"/"+newExperiment.latestVersion)
+            return redirect("/details/" + str(newExperiment.id) + "/" + newExperiment.latestVersion)
         return redirect("/duplicate/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))
