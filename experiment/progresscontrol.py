@@ -1,6 +1,7 @@
 import experiment.export.exporter as ex
 import experiment.connection.serverconnection as sc
 import experiment.experimentmain as e
+from typing import Optional
 
 
 class ProgressControl:
@@ -15,11 +16,18 @@ class ProgressControl:
 
         Args:
             experiment (experiment.Experiment): running experiment
-            num_model_runs (dict[str, int]): dictionary with model names as key and number of runs as value
+            num_models (int): number of models per subspace
+            num_subspace (int):
             server (ServerConnection): ServerConnection object
             exporter (Exporter): exporter that notifies
         """
-        pass
+        self._experiment: e.Experiment = experiment
+        self._subspace_runs: dict[tuple[str], int] = dict()
+        self._num_models: int = num_models
+        self._num_subspaces: int = num_subspaces
+        self._server: sc.ServerConnection = server
+        self._exporter: Optional[ex.Exporter]
+        self._complete_subspaces = 0
 
     def update(self, model: str, subspace_dim: list[str]) -> None:
         """Exporters should call this method to update the progress of the Experiment.
@@ -28,7 +36,25 @@ class ProgressControl:
             model (str): model which results were exported
             subspace_dim (list[str]): dimension titles of the subspace
         """
-        pass
+        key: tuple[str] = tuple(subspace_dim)
+        runs: dict[tuple[str], int]
+        try:
+            self._subspace_runs[key]
+        except KeyError:
+            self._subspace_runs[key] = self._num_models
+
+        self._subspace_runs[key] = self._subspace_runs[key] - 1
+
+        if self._subspace_runs[key] == 0:
+            self._exporter.finalize_single(subspace_dim)
+            self._complete_subspaces += 1
+            del self._subspace_runs[key]
+
+        self._server.send_progress(self.get_progress())
+
+        if len(self._subspace_runs) == 0:
+            self._exporter.finalize()
+            self._experiment.stop()
 
     def update_error(self, model: str, subspace_dim: list[str], error: Exception) -> None:
         """Exporters should call this method to notify Progresscontrol about errors
@@ -38,15 +64,18 @@ class ProgressControl:
             subspace_dim (list[str]): dimension titles of the subspace
             error (Exception): error that occured
         """
-        pass
+        self._server.send_error(str(error))
+        self.update(model, subspace_dim)
 
-    def get_progress() -> int:
+    def get_progress(self) -> int:
         """returns progress
 
         Returns:
             int: progress in percent as integer
         """
-        pass
+        sum_runs = self._complete_subspaces * self._num_models + sum(self._subspace_runs.values())
+        total = self._num_models * self._num_subspaces
+        return int(sum_runs/total)
 
     def register(self, exporter: ex.Exporter):
         """Registers an exporter that will be managed by the ProgressControl
@@ -54,4 +83,4 @@ class ProgressControl:
         Args:
             exporter (ex.Exporter): Exporter that should be registered
         """
-        pass
+        self._exporter = exporter
