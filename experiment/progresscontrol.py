@@ -1,6 +1,6 @@
 import experiment.export.exporter as ex
 import experiment.connection.serverconnection as sc
-from experiment.experiment import Experiment
+import experiment.experimentmain as e
 
 
 class ProgressControl:
@@ -10,7 +10,7 @@ class ProgressControl:
     After the last export the ProgressControl notifies the Experiment that it should stop via the stop()-method.
     """
 
-    def __init__(self, experiment: Experiment, num_model_runs: dict[str, int], server: sc.ServerConnection) -> None:
+    def __init__(self, experiment: e.Experiment, num_models: int, num_subspaces: int, server: sc.ServerConnection) -> None:
         """contructor
 
         Args:
