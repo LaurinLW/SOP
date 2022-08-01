@@ -29,4 +29,10 @@ class InputHandler():
         if request.POST.get("minDimension") > request.POST.get("maxDimension"):
             messages.warning(request, "Your min dimension can not be bigger than the max dimension")
             value = False
+        try:
+            if int(request.POST.get("repetitions")) > 100:
+                messages.warning(request, "The repetitions are maxed at 100")
+                value = False
+        except ValueError:
+            pass
         return value
