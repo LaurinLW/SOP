@@ -1,4 +1,4 @@
-from experiment.export.exporter import Exporter
+import experiment.export.exporter as ex
 import experiment.progresscontrol as pc
 from experiment.run.result import Result
 from threading import Event
@@ -9,7 +9,7 @@ from experiment.run.job import Job
 import os
 
 
-class CSVExporter(Exporter):
+class CSVExporter(ex.Exporter):
     """ This class is an Exporter implementation that writes the results to disk as a csv file.
     The csv file contains for each subspace its data and for each datapoint the decision score of the models.
     The seperator for the csv file is ','.
