@@ -7,7 +7,7 @@ class RPCServerConnection(ServerConnection):
     """
 
     def __init__(self, server: str, experiment_id: str):
-        super.__init__(self, server, experiment_id)
+        super().__init__(server, experiment_id)
         self._json_id = 0
 
     def send_progress(self, progress: int):
