@@ -16,7 +16,7 @@ def create_pyod_algorithms(sender, **kwargs):
     except OperationalError:
         return
     direc = str(pyod.models.__path__).replace("['", "").replace("']", "")
-    ignore_list = ["base", "sklearn_base", "suod", "xgbod", "lscp", "gaal_base"]
+    ignore_list = ["base", "sklearn_base", "suod", "xgbod", "lscp", "gaal_base", "base_dl", "combination"]
     method_name_list = ["AnoGAN", "DeepSVDD", "AutoEncoder", "FeatureBagging", "IForest", "Sampling"]
     for a in os.listdir(direc):
         if not a.startswith("_") and a.replace(".py", "") not in ignore_list:

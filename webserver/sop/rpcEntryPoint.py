@@ -43,7 +43,7 @@ def receiveResult(file, version_id):
     subspace = SubspaceForm()
     result = ResultForm()
     subspace.dataset = version.experiment.dataset
-    result.resultFile = file
+    result.resultFile.name = file
     result.subspace = subspace
     result.version = version
     if subspace.is_valid() and result.is_valid():
