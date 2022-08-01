@@ -35,4 +35,6 @@ class InputHandler():
                 value = False
         except ValueError:
             pass
+        except TypeError:
+            pass
         return value

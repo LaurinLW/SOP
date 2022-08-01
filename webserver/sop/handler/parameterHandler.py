@@ -1,5 +1,4 @@
 from sop.models.algorithmModel import AlgorithmModel
-from django.core.exceptions import SuspiciousFileOperation
 import json
 from django.contrib import messages
 
@@ -19,10 +18,8 @@ class ParameterHandler():
         """
         idalgo = "\"ID\": " + str(algo_id) + ",\n"
         error = False
-        try:
-            import_string = AlgorithmModel.objects.get(pk=algo_id).file.path
-        except SuspiciousFileOperation:
-            import_string = AlgorithmModel.objects.get(pk=algo_id).file.name
+        algorithm = AlgorithmModel.objects.get(pk=algo_id)
+        import_string = f'{algorithm.modul_name}.{algorithm.class_name}'
         parameters = ""
         para = ""
         original_parameters = json.loads(AlgorithmModel.objects.get(pk=algo_id).parameters)

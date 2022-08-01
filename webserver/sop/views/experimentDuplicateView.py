@@ -9,7 +9,6 @@ from sop.models.versionModel import VersionModel
 from sop.models.algorithmModel import AlgorithmModel
 from sop.models.datasetModel import DatasetModel
 from sop.handler.inputHandler import InputHandler
-from django.core.exceptions import SuspiciousFileOperation
 
 
 class ExperimentDuplicateView(LoginRequiredMixin, View):
@@ -36,10 +35,7 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
             selected_data = None
         data = "{"
         for algo in algorithms:
-            try:
-                import_string = algo.file.path
-            except SuspiciousFileOperation:
-                import_string = algo.file.name
+            import_string = f'{algo.modul_name}.{algo.class_name}'
             data += '"' + import_string + '":'
             data += algo.parameters + ","
         data = data[:-1]

@@ -1,11 +1,12 @@
 from django import template
+from sop.models import AlgorithmModel
 
 
 register = template.Library()
 
 
 def get(value, arg):
-    return value.get(arg).items()
+    return value.get(f'{AlgorithmModel.objects.get(pk=int(arg)).modul_name}.{AlgorithmModel.objects.get(pk=int(arg)).class_name}').items()
 
 
 register.filter('get', get)
