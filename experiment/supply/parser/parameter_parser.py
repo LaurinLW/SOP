@@ -1,13 +1,14 @@
 import abc
 
 from abc import ABC
+from typing import TextIO
 
 
 class ParameterParser(ABC):
     """abstract class which all parameter parsers inherit from"""
 
     @abc.abstractmethod
-    def get_parameters(self, model: str) -> dict:
+    def get_parameters(self, parameterFile: TextIO) -> dict:
         """returns parameters of the wanted model
 
         Args:

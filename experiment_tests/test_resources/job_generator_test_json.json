@@ -1,0 +1,24 @@
+{
+            "pyod.models.abod.ABOD": {
+                "contamination": 0.2,
+                "n_neighbors": 9,
+                "method": "fast"
+            },
+            "pyod.models.anogan.AnoGAN": {
+                "activation_hidden": "tanh",
+                "dropout_rate": 0.3,
+                "latent_dim_G": 2,
+                "G_layers": [20, 10, 3, 10, 20],
+                "verbose": 1,
+                "D_layers": [20, 10, 5],
+                "index_D_layer_for_recon_error": 1,
+                "epochs": 400,
+                "preprocessing": true,
+                "learning_rate": 0.005,
+                "learning_rate_query": 0.001,
+                "epochs_query": 20,
+                "batch_size": 30,
+                "output_activation": null,
+                "contamination": 0.1
+            }
+        }
