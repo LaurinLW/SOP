@@ -7,11 +7,11 @@
             {% csrf_token %}
             <!-- file explorer window to select .py file as algorithm upload file -->
             <div>
-                <label for="algorithm_uploads">Chose algorithm to upload (.py)</label>
+                <label name="file" for="algorithm_uploads">Chose algorithm to upload (.py)</label>
                 <input type="file" id="file" name="file" accept=".py">
             </div>
 
-            <!-- category and name -->
+            <!-- name -->
             <div>
                 name
                 <input type="text" id="name" name ="name">
@@ -38,37 +38,14 @@
                 </select>
             </div>
 
-            <!--
-            <div style="top:300px;position:fixed">
-                <select name="read" id="read">
-                    {% for algo in algorithms %}
-                    <option value="{{algo.id}}">{{algo.name}}</option>
-                    {% endfor %}
-                </select>
-
-                <button type="submit" name="confirm_select" id="confirm_select">confirm select</button>
-            </div>
-
-             <div style="position:fixed;right:10px">
-                <label style="position:fixed; top:200px; right:10px" for="file">select algorithm to delete</label>
-                <select style="position:fixed; top:220px; right:10px" name="file" id="file">
-                    <option value="none">none</option>
-                    {% for algo in algorithms %}
-                        <option value="{{algo.id}}">{{algo.name}}</option>
-                    {% endfor %}
-                </select>
-
-                <button type="submit "name="delete_btn" style="width:200px; height:60px; position:fixed;right:10px">
-                    <p style="text-align:center;font-size:large;">
-                        delete
-                    </p>
-                </button>
-            </div> -->
-            
-      
-
+            {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <p style="position:fixed;top:50%;right:50%;color:red">{{ message }}</p>                
+                {% endfor %}
+            </ul>
+            {% endif %}
         </form>
-
     </body>
     {% endblock %}
 </html>
