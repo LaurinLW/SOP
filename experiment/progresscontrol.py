@@ -75,7 +75,7 @@ class ProgressControl:
         """
         sum_runs = self._complete_subspaces * self._num_models + sum(self._subspace_runs.values())
         total = self._num_models * self._num_subspaces
-        return int(sum_runs/total)
+        return int(sum_runs / total)
 
     def register(self, exporter: ex.Exporter):
         """Registers an exporter that will be managed by the ProgressControl

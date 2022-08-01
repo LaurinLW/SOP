@@ -5,6 +5,7 @@ __pycache__/
 migrations/
 user_algorithms/
 user_datasets/
+experimente/
 .vscode/
 experiment_tests/export/
 

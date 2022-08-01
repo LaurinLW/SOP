@@ -67,8 +67,8 @@ class ExperimentEditView(LoginRequiredMixin, View):
                 return redirect("/edit/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))
             newVersion.parameterSettings = parameters
             newVersion.save()
-            experiment.latestVersion = str(newVersion.edits)+"."+str(newVersion.runs)
+            experiment.latestVersion = str(newVersion.edits) + "." + str(newVersion.runs)
             experiment.name = request.POST.get("name", experiment.name)
             experiment.save()
-            return redirect("/details/"+str(experiment.id)+"/"+experiment.latestVersion)
+            return redirect("/details/" + str(experiment.id) + "/" + experiment.latestVersion)
         return redirect("/edit/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))

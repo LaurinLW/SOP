@@ -24,7 +24,7 @@ class ParameterHandler():
         para = ""
         original_parameters = json.loads(AlgorithmModel.objects.get(pk=algo_id).parameters)
         for postdata in request.POST:
-            if postdata.startswith(str(algo_id)+".parameters"):
+            if postdata.startswith(str(algo_id) + ".parameters"):
                 original_type = type(original_parameters[postdata.split(":")[1]])
                 if original_type == int:
                     try:
@@ -41,7 +41,7 @@ class ParameterHandler():
                 elif original_type == bool:
                     try:
                         transformed = bool(request.POST[postdata])
-                        parameters += f'\"{postdata.split(":")[1]}\": {transformed},\n'
+                        parameters += f'\"{postdata.split(":")[1]}\": %s ,\n' % ('true' if transformed else 'false')
                     except ValueError:
                         error = True
                 elif original_type is None:

@@ -34,5 +34,5 @@ class ExperimentIterateView(View, LoginRequiredMixin):
                 experiment.latestVersion = str(newVersion.edits) + "." + str(newVersion.runs)
                 experiment.latestStatus = "paused"
                 experiment.save()
-                return redirect("/details/"+str(experiment.id)+"/"+str(newVersion.edits)+"."+str(newVersion.runs))
+                return redirect("/details/" + str(experiment.id) + "/" + str(newVersion.edits) + "." + str(newVersion.runs))
         return redirect("/")

@@ -16,7 +16,7 @@ class VersionModel(models.Model):
     minDimension = models.IntegerField()
     maxDimension = models.IntegerField()
     progress = models.IntegerField()
-    pid = models.IntegerField(null=True)
+    pid = models.CharField(max_length=10, null=True)
     algorithms = models.ManyToManyField(AlgorithmModel)
     experiment = models.ForeignKey(ExperimentModel, on_delete=models.CASCADE)
     error = models.CharField(max_length=100, null=True)

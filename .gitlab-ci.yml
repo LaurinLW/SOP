@@ -28,6 +28,9 @@ upload_registry:
     - docker login -u $REGISTRY_USER -p $REGISTRY_PW $REGISTRY_URL
     - docker tag sop-web $REGISTRY_URL/sop-web:latest
     - docker push $REGISTRY_URL/sop-web:latest
+    - docker build -t sop-experiment -f Dockerfile_experiment .
+    - docker tag sop-experiment $REGISTRY_URL/sop-experiment:latest
+    - docker push $REGISTRY_URL/sop-experiment:latest
 
 deploy:
   needs: ["upload_registry"]

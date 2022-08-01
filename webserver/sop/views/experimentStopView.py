@@ -3,6 +3,9 @@ from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from sop.models import ExperimentModel, VersionModel
 from django.db.models import Q
+import os
+import shutil
+import docker
 
 
 class ExperimentStopView(View, LoginRequiredMixin):
@@ -24,5 +27,15 @@ class ExperimentStopView(View, LoginRequiredMixin):
             version.experiment.latestStatus = "paused"
             version.experiment.save()
             version.save()
-            # todo: kill process
-            return redirect("/details/"+str(experiment.id)+"/"+str(version.edits)+"."+str(version.runs))
+
+            # remove container with working directory
+            client = docker.from_env()
+            try:
+                container = client.containers.get(version.pid)
+                container.kill()
+            except:
+                pass
+            working_dir = os.path.join(os.path.abspath(os.getcwd()), 'experimente', str(experiment.id) + '.' + str(version.edits) + '.' + str(version.runs))
+            if os.path.exists(working_dir):
+                shutil.rmtree(working_dir)
+            return redirect("/details/" + str(experiment.id) + "/" + str(version.edits) + "." + str(version.runs))
