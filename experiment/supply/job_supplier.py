@@ -8,6 +8,11 @@ from experiment.run.job import Job
 from experiment.supply.job_generator import JobGenerator
 from experiment.supply.subspace.subspace_generator import SubspaceGenerator
 
+from experiment.supply.preprocessing.cleaner import Cleaner
+from experiment.supply.preprocessing.encoder import Encoder
+from experiment.supply.preprocessing.cleaner_drop_nan import DropNaNCleaner
+from experiment.supply.preprocessing.encoder_one_hot import EncoderOneHot
+
 
 class JobSupplier(PipelineStage):
     """Represents the supply-stage of the pipeline.
@@ -43,9 +48,12 @@ class JobSupplier(PipelineStage):
             stop (Event): Event which when triggered stops the Thread JobSupplier
         """
 
+        super().__init__(None, out, stop)
         Thread.__init__(self)
+        self.__cleaner: Cleaner = DropNaNCleaner()
+        self.__encoder: Encoder = EncoderOneHot()
         self.subspace_generator: SubspaceGenerator = SubspaceGenerator(
-            number_subspaces, min_dimension, max_dimension, seed, data
+            number_subspaces, min_dimension, max_dimension, seed, data, self.__encoder, self.__cleaner
         )
         self.__job_generator = JobGenerator(models, parameterFile)
         self.__stop: Event = stop
@@ -56,25 +64,28 @@ class JobSupplier(PipelineStage):
         """method that creates Jobs and puts them into the Queue to be processed when possible"""
 
         iterator = iter(self.subspace_generator)
+        jobs_failed_to_add: list[Job] = list()
 
         while not self.__stop.is_set():
 
-            try:
-                subspace = next(iterator)
+            job_list: list[Job] = list()
 
-            except StopIteration:
-                break
+            if len(jobs_failed_to_add) == 0:
+                try:
+                    subspace = next(iterator)
 
-            else:
-                # maybe implement later to only make new jobs when all old ones were added to the Queue
+                except StopIteration:
+                    break
+
                 job_list: list[Job] = self.__job_generator.generate(subspace)
-                job_list = self.__jobs_failed_to_add + job_list
-                self.__jobs_failed_to_add.clear()
 
-                for job in job_list:
-                    try:
-                        self.__out_queue.put(job, True, timeout=self._q_timeout)
+            job_list: list[Job] = job_list + jobs_failed_to_add
+            jobs_failed_to_add.clear()
 
-                    except Exception:
-                        self.__jobs_failed_to_add(job)
-                        continue
+            for job in job_list:
+                try:
+                    self.__out_queue.put(job, True, timeout=self._q_timeout)
+
+                except Exception:
+                    jobs_failed_to_add.append(job)
+                    continue

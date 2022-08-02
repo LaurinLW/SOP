@@ -14,6 +14,7 @@ import experiment.progresscontrol as pc
 from experiment.connection.rpcserverconnection import RPCServerConnection
 from experiment.connection.serverconnection import ServerConnection
 import signal
+import json
 
 
 class Experiment:
@@ -43,8 +44,8 @@ class Experiment:
             connection (str): string that allows to establish a connection to the server
         """
         # signal handling for graceful shutdown
-        signal.signal(signal.SIGINT, self.stop)
-        signal.signal(signal.SIGTERM, self.stop)
+        signal.signal(signal.SIGINT, self._stop_signal)
+        signal.signal(signal.SIGTERM, self._stop_signal)
 
         self._stop: threading.Event = threading.Event()
         # queue size should avoid loading to many subspaces into memory
@@ -57,17 +58,20 @@ class Experiment:
         for f in os.listdir(path_working_directory):
             if f.endswith(".csv"):
                 data_file = f
-        model_file = open(os.path.join(path_working_directory, Experiment.model_dir, Experiment.model_file), "r")
-        models: list[str] = model_file.readlines()
-        model_file.close()
+
+        param_file = open(os.path.join(path_working_directory, Experiment.model_dir, Experiment.param_file), "r")
+
+        param_file.seek(0)
+
+        models: list[str] = json.load(param_file).keys()
+
+        param_file.seek(0, 0)
+
+        parameters: JsonParameterParser = JsonParameterParser(param_file)
 
         server_connection: ServerConnection = RPCServerConnection(connection, experiment_id)
 
         self._progress: pc.ProgressControl = pc.ProgressControl(self, len(models), num_subspace, server_connection)
-
-        parameters: JsonParameterParser = JsonParameterParser(open(os.path.join(path_working_directory,
-                                                                                Experiment.model_dir,
-                                                                                Experiment.param_file), "r"))
 
         self._supply: JobSupplier = JobSupplier(num_subspace,
                                                 min_subspace_dim,
@@ -82,7 +86,8 @@ class Experiment:
         self._run: Runner = Serial(self._q_supply_run, self._q_run_export, self._stop)
 
         export_path = os.path.join(path_working_directory, self._export_dir)
-        os.mkdir(export_path)
+        if not os.path.exists(export_path):
+            os.mkdir(export_path)
 
         self._export: ex.Exporter = csvex.CSVExporter(self._progress, self._q_run_export, self._stop, export_path)
 
@@ -97,6 +102,9 @@ class Experiment:
     def stop(self) -> None:
         """This method signals to pipeline stages that they should clean up and terminate."""
         self._stop.set()
+
+    def _stop_signal(self, sig, frame) -> None:
+        self.stop()
 
 
 def _check_args(args: argparse.Namespace):
@@ -123,18 +131,11 @@ def _check_args(args: argparse.Namespace):
         print(f"the working directory does not contain the required {Experiment.model_dir} directory", file=sys.stderr)
         exit(1)
 
-    algo_flag: bool = False
     param_flag: bool = False
 
     for f in os.listdir(model_dir):
-        if f == Experiment.model_file:
-            algo_flag = True
         if f == Experiment.param_file:
             param_flag = True
-
-    if not algo_flag:
-        print(f"{Experiment.model_file} is missing in {model_dir}", file=sys.stderr)
-        exit(1)
 
     if not param_flag:
         print(f"{Experiment.param_file} is missing in {model_dir}", file=sys.stderr)
