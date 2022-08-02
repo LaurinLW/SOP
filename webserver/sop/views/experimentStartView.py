@@ -7,6 +7,7 @@ import docker
 import os
 import shutil
 import json
+from django.conf import settings
 
 from sop.models.algorithmModel import AlgorithmModel
 
@@ -64,20 +65,29 @@ class ExperimentStartView(View, LoginRequiredMixin):
                 except Exception:
                     shutil.rmtree(working_dir)
                     return redirect("/details/" + str(experiment.id) + "/" + str(version.edits) + "." + str(version.runs))
-
+                print(working_dir)
                 client = docker.from_env()
                 container = client.containers.run(ExperimentStartView.EXPERIMENT_IMAGE,
-                                                  command=f'python experimentstart.py -id %d -s %d -d %s -minsd %d -maxsd %d -ns %d' %
+                                                  entrypoint=f'python experimentstart.py ' +
+                                                              '-id %d ' +  # noqa: E127
+                                                              '-s %d ' +
+                                                              '-d %s ' +
+                                                              '-minsd %d ' +
+                                                              '-maxsd %d ' +
+                                                              '-ns %d ' +
+                                                              '-c http://' + settings.RPC_PATH %
                                                   (version.id,
                                                    version.seed,
                                                    '/experimentconfig',
                                                    version.minDimension,
                                                    version.maxDimension,
                                                    version.numberSubspaces),
+                                                  network='sop-network',
                                                   detach=True,
-                                                  auto_remove=True,
-                                                  volumes={working_dir: {'bind': '/experimentconfig', 'mode': 'rw'}})
-
+                                                  volumes=[settings.SHARED_EXPERIMENT
+                                                           + str(experiment.id) + '.'
+                                                           + str(version.edits) + '.'
+                                                           + str(version.runs) + ':/experimentconfig'])
                 version.pid = container.short_id
                 version.save()
 
