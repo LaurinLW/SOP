@@ -44,8 +44,10 @@ class ParameterHandler():
                         parameters += f'\"{postdata.split(":")[1]}\": %s ,\n' % ('true' if transformed else 'false')
                     except ValueError:
                         error = True
-                elif original_type is None:
+                elif original_type is None or request.POST[postdata] == "None" or request.POST[postdata] == "none":
                     parameters += f'\"{postdata.split(":")[1]}\": null,\n'
+                elif original_type is list:
+                    parameters += f'\"{postdata.split(":")[1]}\": {request.POST[postdata]},\n'
                 else:
                     parameters += f'\"{postdata.split(":")[1]}\": \"{request.POST[postdata]}\",\n'
                 if error:
