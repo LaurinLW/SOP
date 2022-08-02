@@ -10,4 +10,6 @@ WORKDIR /experiment
 
 COPY ./experiment ./
 
-ENTRYPOINT python experimentstart.py
+ENV PYTHONPATH "${PYTHONPATH}:/"
+
+ENTRYPOINT python experimentmain.py
