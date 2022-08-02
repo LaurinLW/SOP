@@ -12,15 +12,15 @@ class RPCServerConnection(ServerConnection):
 
     def send_progress(self, progress: int):
         payload = self._create_payload("receiveProgress", [progress, self._experiment_id])
-        requests.post(self._server, json=payload).json()
+        requests.post(self._server, json=payload)
 
     def send_error(self, error: str):
         payload = self._create_payload("receiveError", [error, self._experiment_id])
-        requests.post(self._server, json=payload).json()
+        requests.post(self._server, json=payload)
 
     def receive_result(self, file_name: str):
         payload = self._create_payload("receiveResult", [file_name])
-        requests.post(self._server, json=payload).json()
+        requests.post(self._server, json=payload)
 
     def _create_payload(self, method: str, parameters: list) -> dict:
         paylaod = {

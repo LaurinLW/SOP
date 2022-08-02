@@ -37,7 +37,7 @@ class CSVExporter(ex.Exporter):
                 try:
                     export_job = next_result.unpack()
                 except Exception as e:
-                    self._progress.update_error(next_result.job.model,
+                    self._progress.update_error(str(next_result.job.model),
                                                 next_result.job.get_subspace_dimensions(),
                                                 e)
                     continue
@@ -54,7 +54,7 @@ class CSVExporter(ex.Exporter):
 
                 df[str(export_job.model)] = export_job.get_outlier_scores()
 
-                self._progress.update(export_job.model, export_job.get_subspace_dimensions())
+                self._progress.update(str(export_job.model), export_job.get_subspace_dimensions())
                 next_result = None
 
     def finalize(self):

@@ -30,6 +30,7 @@ class Serial(Runner):
             if result is not None:
                 try:
                     self._out_q.put(result, timeout=self._q_timeout)
+                    result = None
                 except Exception:
                     # if you cannot place result in queue, check event flag and try again
                     continue

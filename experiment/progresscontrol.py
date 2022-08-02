@@ -41,19 +41,21 @@ class ProgressControl:
         try:
             self._subspace_runs[key]
         except KeyError:
-            self._subspace_runs[key] = self._num_models
+            self._subspace_runs[key] = 0
 
-        self._subspace_runs[key] = self._subspace_runs[key] - 1
+        self._subspace_runs[key] = self._subspace_runs[key] + 1
 
-        if self._subspace_runs[key] == 0:
+        if self._subspace_runs[key] == self._num_models:
             self._exporter.finalize_single(subspace_dim)
             self._complete_subspaces += 1
             del self._subspace_runs[key]
 
+        if self._complete_subspaces == self._num_subspaces:
+            self._exporter.finalize()
+
         self._server.send_progress(self.get_progress())
 
-        if len(self._subspace_runs) == 0:
-            self._exporter.finalize()
+        if self._complete_subspaces == self._num_subspaces:
             self._experiment.stop()
 
     def update_error(self, model: str, subspace_dim: list[str], error: Exception) -> None:
@@ -75,7 +77,7 @@ class ProgressControl:
         """
         sum_runs = self._complete_subspaces * self._num_models + sum(self._subspace_runs.values())
         total = self._num_models * self._num_subspaces
-        return int(sum_runs / total)
+        return int((sum_runs / total) * 100)
 
     def register(self, exporter: ex.Exporter):
         """Registers an exporter that will be managed by the ProgressControl

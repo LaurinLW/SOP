@@ -14,6 +14,7 @@ class JsonParameterParser(ParameterParser):
             jsonFile (File): JSONField to parse
         """
         self.__jsonFile: dict = json.load(parameterFile)
+
         parameterFile.close()
 
     def get_parameters(self, model: str) -> dict:
@@ -28,4 +29,8 @@ class JsonParameterParser(ParameterParser):
         output: dict = self.__jsonFile.get(model)
         if output is None:
             return dict()
+        try:
+            del output["ID"]
+        except KeyError:
+            pass
         return output
