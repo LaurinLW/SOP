@@ -59,7 +59,6 @@ class ExperimentCreateView(LoginRequiredMixin, View):
                     ver.delete()
                     return redirect("/newExperiment")
                 ver.parameterSettings = parameters
-                print(parameters)
                 ver.save()
                 reps = int(request.POST.get("repetitions", 1)) - 1
                 for a in range(reps):

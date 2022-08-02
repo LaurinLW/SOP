@@ -49,15 +49,16 @@ def create_pyod_algorithms(sender, **kwargs):
                             algoPara += (f"\"{parameters.args[i]}\": false,\n")
                     elif parameters.defaults[i - 1] is None:
                         algoPara += (f"\"{parameters.args[i]}\": null,\n")
+                    elif default_type == list:
+                        algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
                     else:
                         algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
                 algoPara = algoPara[:-2]
                 algoPara += "}"
                 new_algorithm.name = a.replace(".py", "")
                 new_algorithm.parameters = algoPara
-                new_algorithm.modul_name = f'sop.models.{a.replace(".py", "")}'
+                new_algorithm.modul_name = f'pyod.models.{a.replace(".py", "")}'
                 new_algorithm.class_name = class_name
-                print(new_algorithm.file.name)
                 new_algorithm.save()
                 # Add category
 
