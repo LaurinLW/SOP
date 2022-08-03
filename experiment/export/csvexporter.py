@@ -62,7 +62,7 @@ class CSVExporter(ex.Exporter):
             df.to_csv(os.path.join(self._path, f"subspace_result{self._next_export_id}.csv"))
             self._next_export_id += 1
 
-    def finalize_single(self, dims: list[str]) -> str():
+    def finalize_single(self, dims: list[str]) -> str:
         key = tuple(dims)
         export: pd.DataFrame
         try:
