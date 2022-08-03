@@ -33,3 +33,12 @@ class ServerConnection(abc.ABC):
             error (str): error message
         """
         pass
+
+    @abc.abstractmethod
+    def send_result(self, name: str):
+        """This method is used to notify the server of single results.
+
+        Args:
+            name (str): name of the result
+        """
+        pass
