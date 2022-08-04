@@ -2,6 +2,6 @@
 
 {% block content %}
     {% for result in results %}
-    <p><a href="results/{{result.id}}" download> Download Result </a></p>
+    <p><a href="results/{{result.id}}" download> Download Result: {{result.file.name}}</a></p>
     {% endfor %}
 {% endblock %}

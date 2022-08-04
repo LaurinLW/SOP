@@ -1,3 +1,6 @@
+/**
+ * Manages the collapsibles
+ */
 document.addEventListener("DOMContentLoaded", function (event) {
     var coll = document.getElementsByClassName("collapsible");
     var i;

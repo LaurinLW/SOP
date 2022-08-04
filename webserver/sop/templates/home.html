@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
+<p>Search: <input class="search" type="search" id="search" name="search" style="width: 20%;"/></p>
 <table style="font-size: 23px;">
     {% for exp in Experiments %}
-    <tr>
+    <tr class="searchable" id="{{exp.name}}" style="display: table-row;">
         <td style="padding-right: 1vw;"> {{exp.name}} </td>
         <td> {% if exp.latestStatus == "paused" %}
             <span style="background-color:yellow; display:block; height: 2.5vh; width: 2.5vh; border-radius:50%;"></span>
@@ -13,8 +14,8 @@
             <span style="background-color:red; display:block; height: 2.5vh; width: 2.5vh; border-radius:50%;"></span>
             {% endif %}
         </td>
-        <td style="padding-right: 1vw; padding-left: 1vw;"> <a href="details/{{exp.id}}/{{exp.latestVersion}}"> Details </a> </td>
-        <td style="padding-right: 1vw;"> <a href="dashboard/{{exp.id}}/{{exp.latestVersion}}"> Dashboard </a> </td>
+        <td style="padding-right: 1vw; padding-left: 1vw;"> <a class="no_link_highlight" href="details/{{exp.id}}/{{exp.latestVersion}}"> Details </a> </td>
+        <td style="padding-right: 1vw;"> <a class="no_link_highlight" href="dashboard/{{exp.id}}/{{exp.latestVersion}}"> Dashboard </a> </td>
     </tr>
     {% endfor %}
     <table>

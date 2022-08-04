@@ -79,7 +79,7 @@ class AlgorithmUploadView(View, LoginRequiredMixin):
                         algoPara = algoPara[:-2]
                         algoPara += "}"
                         algo.parameters = algoPara
-                        algo.modul_name = module.__package__
+                        algo.modul_name = basename.replace(".py", "")
                         algo.class_name = class_name
                 if (algo.parameters is None or algo.modul_name is None or algo.class_name is None):
                     algo.delete()

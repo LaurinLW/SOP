@@ -26,7 +26,7 @@ class InputHandler():
                     except ValueError:
                         messages.warning(request, "Your " + input + " needs to be a integer")
                         value = False
-        if request.POST.get("minDimension") > request.POST.get("maxDimension"):
+        if request.POST.get("minDimension", 0) > request.POST.get("maxDimension", 0):
             messages.warning(request, "Your min dimension can not be bigger than the max dimension")
             value = False
         try:

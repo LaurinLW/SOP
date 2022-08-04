@@ -41,8 +41,9 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
         data = data[:-1]
         data += "}"
         data = json.loads(data)
+        categories = ["Probabilistic", "Linear Model", "Proximity-Based", "Outlier Ensembles", "Neural Networks", "Other"]
         return render(request, self.template_name, {"Algorithms": algorithms, "name": experiment.name,
-                      "Datasets": possible_datasets, "version": version, "selected_data": selected_data, "data": data})
+                      "Datasets": possible_datasets, "version": version, "selected_data": selected_data, "data": data, "categories": categories})
 
     def post(self, request, *args, **kwargs):
         """ This method handels the post request of the experiment-detail-site
@@ -66,6 +67,8 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
             newVersion.edits = 1
             newVersion.runs = 0
             newVersion.status = "paused"
+            newVersion.pid = None
+            newVersion.progress = 0
             newVersion.experiment = newExperiment
             newVersion.seed = request.POST.get("seed", newVersion.seed)
             newVersion.minDimension = request.POST.get("minDimension", newVersion.minDimension)

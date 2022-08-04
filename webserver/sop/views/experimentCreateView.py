@@ -24,8 +24,8 @@ class ExperimentCreateView(LoginRequiredMixin, View):
             the result of calling django.shortcuts.render with the passed arguments
         """
         possible_algorithms = AlgorithmModel.objects.all().filter(creator_id=request.user.id)  # own algorithms
-        pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None)  # pyod algorithms
-        possible_datasets = DatasetModel.objects.all().filter(creator_id=request.user.id)  # own datasets
+        pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None).order_by("name").values()  # pyod algorithms
+        possible_datasets = DatasetModel.objects.all().filter(creator_id=request.user.id).order_by("name").values()  # own datasets
         algorithms = possible_algorithms | pyod_algorithms
         if algorithms.count() > 0:
             data = "["
@@ -36,7 +36,8 @@ class ExperimentCreateView(LoginRequiredMixin, View):
             data = json.loads(data)
         else:
             data = None
-        return render(request, self.template_name, {"Algorithms": algorithms, "Datasets": possible_datasets, "data": data})
+        categories = ["Probabilistic", "Linear Model", "Proximity-Based", "Outlier Ensembles", "Neural Networks", "Other"]
+        return render(request, self.template_name, {"Algorithms": algorithms, "Datasets": possible_datasets, "data": data, "categories": categories})
 
     def post(self, request, *args, **kwargs):
         """ This method handels the post request of the newExperiment-site

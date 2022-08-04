@@ -6,9 +6,12 @@ from django.db.models.signals import post_migrate
 import importlib.util
 import pyod.models
 from django.db.utils import OperationalError
+import json
 
 
 def create_pyod_algorithms(sender, **kwargs):
+    """ Adds the pyod algorithms to the database
+    """
     from sop.models import AlgorithmModel
     try:
         AlgorithmModel.objects.all()
@@ -21,17 +24,17 @@ def create_pyod_algorithms(sender, **kwargs):
         if not a.startswith("_") and a.replace(".py", "") not in ignore_list:
             if AlgorithmModel.objects.all().filter(creator=None).filter(name=a.replace(".py", "")).exists() is False:
                 spec = importlib.util.spec_from_file_location(a.replace(".py", ""), direc + os.path.sep + a)
-                foo = importlib.util.module_from_spec(spec)
-                foo.__package__ = "pyod.models"
-                spec.loader.exec_module(foo)
+                methode = importlib.util.module_from_spec(spec)
+                methode.__package__ = "pyod.models"
+                spec.loader.exec_module(methode)
                 class_name = ""
                 try:
-                    algo = getattr(foo, a.replace(".py", "").upper())
+                    algo = getattr(methode, a.replace(".py", "").upper())
                     class_name = a.replace(".py", "").upper()
                 except:
                     for method_name in method_name_list:
                         try:
-                            algo = getattr(foo, method_name)
+                            algo = getattr(methode, method_name)
                             class_name = method_name
                         except:
                             pass
@@ -52,15 +55,21 @@ def create_pyod_algorithms(sender, **kwargs):
                     elif default_type == list:
                         algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
                     else:
-                        algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
+                        default = str(parameters.defaults[i - 1]).split(" at ")[0]
+                        if default != str(parameters.defaults[i - 1]):
+                            algoPara += (f"\"{parameters.args[i]}\": \"{default}>\",\n")
+                        else:
+                            algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
                 algoPara = algoPara[:-2]
                 algoPara += "}"
                 new_algorithm.name = a.replace(".py", "")
                 new_algorithm.parameters = algoPara
                 new_algorithm.modul_name = f'pyod.models.{a.replace(".py", "")}'
                 new_algorithm.class_name = class_name
+                json_file = json.load(open("sop/pyod_algorithms_categories.json"))
+                if a.replace(".py", "") in json_file:
+                    new_algorithm.category = json_file[a.replace(".py", "")]
                 new_algorithm.save()
-                # Add category
 
 
 class SopConfig(AppConfig):

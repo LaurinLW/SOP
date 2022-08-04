@@ -44,8 +44,27 @@ class ParameterHandler():
                         parameters += f'\"{postdata.split(":")[1]}\": %s ,\n' % ('true' if transformed else 'false')
                     except ValueError:
                         error = True
-                elif original_type is None or request.POST[postdata] == "None" or request.POST[postdata] == "none":
-                    parameters += f'\"{postdata.split(":")[1]}\": null,\n'
+                elif original_type is None:
+                    if request.POST[postdata] == "None" or request.POST[postdata] == "none":
+                        parameters += f'\"{postdata.split(":")[1]}\": null,\n'
+                    else:
+                        try:
+                            transformed = bool(request.POST[postdata])
+                            parameters += f'\"{postdata.split(":")[1]}\": %s ,\n' % ('true' if transformed else 'false')
+                        except:
+                            try:
+                                if int(request.POST[postdata]) == float(request.POST[postdata]):
+                                    transformed = int(request.POST[postdata])
+                                    parameters += f'\"{postdata.split(":")[1]}\": {transformed},\n'
+                                else:
+                                    transformed = float(request.POST[postdata])
+                                    parameters += f'\"{postdata.split(":")[1]}\": {transformed},\n'
+                            except:
+                                try:
+                                    transformed = list(request.POST[postdata])
+                                    parameters += f'\"{postdata.split(":")[1]}\": {request.POST[postdata]},\n'
+                                except:
+                                    parameters += f'\"{postdata.split(":")[1]}\": \"{request.POST[postdata]}\",\n'
                 elif original_type is list:
                     parameters += f'\"{postdata.split(":")[1]}\": {request.POST[postdata]},\n'
                 else:
