@@ -50,37 +50,42 @@ class AlgorithmUploadView(View, LoginRequiredMixin):
                 algo = algorithm_form.save()
                 algo.category = request.POST.get('category')
                 # reading out the provided python file to extract names and parameters
-                spec = importlib.util.spec_from_file_location(algo.name, algo.file.path)
-                module = importlib.util.module_from_spec(spec)
-                module.__package__ = "sop.views.user_algorithms"
-                spec.loader.exec_module(module)
-                basename = os.path.basename(algo.file.path)
-                module_name = module.__package__ + "." + basename.replace(".py", "")
-                for class_name, cls in inspect.getmembers(importlib.import_module(module_name), inspect.isclass):
-                    if module.__package__ == cls.__module__.replace("." + basename[:-3], ""):
-                        algorithm = getattr(module, class_name)
-                        parameters = inspect.getargspec(algorithm)
-                        algoPara = "{" + f"\"ID\": {algo.id},\n"
-                        for i in range(1, len(parameters.args)):
-                            default_type = type(parameters.defaults[i - 1])
-                            if default_type == int or default_type == float:
-                                algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
-                            elif default_type == bool:
-                                if bool:
-                                    algoPara += (f"\"{parameters.args[i]}\": true,\n")
+                try:
+                    spec = importlib.util.spec_from_file_location(algo.name, algo.file.path)
+                    module = importlib.util.module_from_spec(spec)
+                    module.__package__ = "sop.views.user_algorithms"
+                    spec.loader.exec_module(module)
+                    basename = os.path.basename(algo.file.path)
+                    module_name = module.__package__ + "." + basename.replace(".py", "")
+                    for class_name, cls in inspect.getmembers(importlib.import_module(module_name), inspect.isclass):
+                        if module.__package__ == cls.__module__.replace("." + basename[:-3], ""):
+                            algorithm = getattr(module, class_name)
+                            parameters = inspect.getargspec(algorithm)
+                            algoPara = "{" + f"\"ID\": {algo.id},\n"
+                            for i in range(1, len(parameters.args)):
+                                default_type = type(parameters.defaults[i - 1])
+                                if default_type == int or default_type == float:
+                                    algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
+                                elif default_type == bool:
+                                    if bool:
+                                        algoPara += (f"\"{parameters.args[i]}\": true,\n")
+                                    else:
+                                        algoPara += (f"\"{parameters.args[i]}\": false,\n")
+                                elif default_type == list:
+                                    algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
+                                elif parameters.defaults[i - 1] is None:
+                                    algoPara += (f"\"{parameters.args[i]}\": null,\n")
                                 else:
-                                    algoPara += (f"\"{parameters.args[i]}\": false,\n")
-                            elif default_type == list:
-                                algoPara += (f"\"{parameters.args[i]}\": {parameters.defaults[i-1]},\n")
-                            elif parameters.defaults[i - 1] is None:
-                                algoPara += (f"\"{parameters.args[i]}\": null,\n")
-                            else:
-                                algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
-                        algoPara = algoPara[:-2]
-                        algoPara += "}"
-                        algo.parameters = algoPara
-                        algo.modul_name = basename.replace(".py", "")
-                        algo.class_name = class_name
+                                    algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
+                            algoPara = algoPara[:-2]
+                            algoPara += "}"
+                            algo.parameters = algoPara
+                            algo.modul_name = basename.replace(".py", "")
+                            algo.class_name = class_name
+                except:
+                    messages.warning(request, "An error has occured when trying to extract parameters out of the provided python algorithm code!")
+                    algo.delete()
+                    return redirect('/uploadAlgorithm')
                 if (algo.parameters is None or algo.modul_name is None or algo.class_name is None):
                     algo.delete()
                     messages.warning(request, "An error has occured when trying to extract parameters out of the provided python algorithm code!")
