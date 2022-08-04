@@ -1,57 +1,47 @@
 {% extends "base.html" %}
-
-
 {% block content %}
 <form method="POST">
     {% csrf_token %}
-
     <button 
 			style="position:fixed;width:350px;right: 10px; height:60px;top:20%;" 
 			type="button" 
             onclick="location.href='/uploadAlgorithm'">
 			<p style="font-size: large;">upload new Algorithm</p> 
     </button>
-
     <button 
 			style="position:fixed;width:350px;right: 10px; height:60px;top:30%;" 
 			type="button" 
             onclick="location.href='/uploadDataset'">
 			<p style="font-size: large;">upload new Dataset</p> 
     </button>
-    
     <div style="position:fixed;right:90%;top:20%">
         <label for="username" id="username">
             <p>username: {{username}}</p>
         </label>
     </div>
-
     <div style="position:fixed;right:30%;top:20%">
         <label for="email" id="email">
             <p>email: {{email}}</p>
         </label>
     </div>
-
     <!-- Algorithm Pagination -->
-    {% csrf_token %}
     <div style="position:fixed;top:30%;left:3%;">
         <table class="algo_table" >
             <thead>
-              <tr>
-                <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">ID</th>
+            <tr>
                 <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
                 <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Category</th>
                 <th style="padding-bottom: 40px; padding-right: 10px; font-size: 25px;"></th>
-              </tr>
+            </tr>
             </thead>
             <tbody>
-              {% for algo in algos %}
+            {% for algo in algos %}
                 <tr>
-                  <td>{{ algo.id }}</td>
-                  <td>{{ algo.name }}</td>
-                  <td>{{ algo.category }}</td>
-                  <td><button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button></td>
+                <td>{{ algo.name }}</td>
+                <td>{{ algo.category }}</td>
+                <td><button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button></td>
                 </tr>
-              {% endfor %}
+            {% endfor %}
             </tbody>
         </table>
         <div> 
@@ -74,13 +64,11 @@
             {% endif %}
         </div>
     </div>
-
         <!-- Dataset Pagination -->
     <div style="position:fixed;top:30%;left:50%">
         <table class="dataset_table" >
             <thead>
               <tr>
-                <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">ID</th>
                 <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
                 <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Delete</th>
               </tr>
@@ -88,7 +76,6 @@
             <tbody>
               {% for data in datas %}
                 <tr>
-                  <td>{{ data.id }}</td>
                   <td>{{ data.name }}</td>
                   <td> <button type="submit" name="delete_dataset" value="{{data.id}}">delete</button></td>
                 </tr>
@@ -98,30 +85,28 @@
         <div> 
             {% if datas.has_other_pages %}
                 {% if datas.has_previous %}
-                    <a href="?page={{ datas.previous_page_number }}">&laquo;</a>
+                    <a href="?dataset_page={{ datas.previous_page_number }}">&laquo;</a>
                 {% endif %}
             {% for i in datas.paginator.page_range %}
                 {% if datas.number == i %}
                     <span style="color:red;">{{ i }}</span>
                 {% else %}
-                    <a href="?page={{ i }}">{{ i }}</a>
+                    <a href="?dataset_page={{ i }}">{{ i }}</a>
                 {% endif %}
             {% endfor %}
             {% if datas.has_next %}
-                <a href="?page={{ datas.next_page_number }}">&raquo;</a>
+                <a href="?dataset_page={{ datas.next_page_number }}">&raquo;</a>
             {% else %}
                 <span>&raquo;</span>
             {% endif %}
             {% endif %}
         </div>
     </div>
-
     <!-- User Pagination -->
     <div style="position:fixed;top:65%;left:3%">
         <table class="user_table" >
             <thead>
               <tr>
-                <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">ID</th>
                 <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">Username</th>
                 <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Email</th>
                 <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Role</th>
@@ -133,7 +118,6 @@
             <tbody>
               {% for user in users %}
                 <tr>
-                    <td>{{ user.id }}</td>
                     <td>{{ user.username }}</td>
                     <td>{{ user.email }}</td>
                     {% if user.is_superuser %}
@@ -151,17 +135,17 @@
         <div> 
             {% if users.has_other_pages %}
                 {% if users.has_previous %}
-                    <a href="?page={{ users.previous_page_number }}">&laquo;</a>
+                    <a href="?user_page={{ users.previous_page_number }}">&laquo;</a>
                 {% endif %}
             {% for i in users.paginator.page_range %}
                 {% if users.number == i %}
                     <span style="color:red;">{{ i }}</span>
                 {% else %}
-                    <a href="?page={{ i }}">{{ i }}</a>
+                    <a href="?user_page={{ i }}">{{ i }}</a>
                 {% endif %}
             {% endfor %}
             {% if users.has_next %}
-                <a href="?page={{ users.next_page_number }}">&raquo;</a>
+                <a href="?user_page={{ users.next_page_number }}">&raquo;</a>
             {% else %}
                 <span>&raquo;</span>
             {% endif %}
