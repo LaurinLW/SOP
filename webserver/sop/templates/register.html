@@ -1,14 +1,23 @@
-{% block content %} 
-
-
-<div class="container py-5">
-	<h1>Register</h1>
-	<form method="POST">
-		{% csrf_token %}
-		{{ register_form.as_p }}                    
-		<button class="btn btn-primary" type="submit">Register</button>
-	</form>
-	<p class="text-center">If you already have an account, <a href="/login">login</a> instead.</p>
-</div>
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href='{% static "../static/css/register.css" %}' />
+<body>
+	<div class="register_div">
+		<h1>Register</h1>
+		<form method="POST">
+			{% csrf_token %}
+			<p>Username:</p>
+			<input type="text" id="username" name="username">
+			<p>Email:</p>
+			<input type="email" id="email" name="email"><br><br>
+			<p>Password:</p>
+			<input type="password" id="password1" name="password1">
+			<p>Confirm Password:</p>
+			<input type="password" id="password2" name="password2"><br><br>
+			<button class="register_button" type="submit">Register</button>
+		</form>
+		<p class="text-center">If you already have an account, <a class="no_link_highlight" href="/login">login</a> instead.</p>
+	</div>
+</body>
 
 {% endblock %}

@@ -1,0 +1,41 @@
+.register_div {
+    padding: 1%;
+    background-color: #181818;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #D6EBE4;
+    border-radius: 15px;
+    font-size: x-large;
+    text-align: center;
+}
+
+body {
+    background-color: #1F1F1F;
+}
+
+.register_button {
+    color: #D6EBE4;
+    background-color: #1F1F1F;
+    border: 1px solid #1F1F1F;
+    font-size: x-large;
+    text-align: center;
+    border-radius: 15px;
+    width: 24%;
+    height: 12%;
+}
+
+.register_button:hover {
+    border: 1px solid #D6EBE4;
+}
+
+.no_link_highlight {
+    text-decoration: none;
+    color: #DCFFFF;
+}
+
+#username, #password1, #password2, #email{
+    font-size: x-large;
+    border-radius: 15px;
+}

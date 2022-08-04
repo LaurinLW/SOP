@@ -27,6 +27,8 @@ class ExperimentIterateView(View, LoginRequiredMixin):
                 newVersion.pk = None
                 newVersion.experiment = experiment
                 newVersion.status = "paused"
+                newVersion.progress = 0
+                newVersion.pid = None
                 newVersion.runs = maxVersion.get("runs__max") + 1
                 maxSeed = VersionModel.objects.all().filter(experiment_id=experiment.id).filter(edits=kwargs.get("edits")).aggregate(Max('seed'))
                 newVersion.seed = maxSeed.get("seed__max") + 1

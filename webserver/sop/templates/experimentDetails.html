@@ -1,39 +1,44 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-<h2> Details </h2>
+<h2 id="title"> Details of {{Experiment.name}} </h2>
+<div class="progressbar">
+    <div class="realbar" id="progress">0%</div>
+</div>
 
-<div>
-    <p> Name: {{Experiment.name}} </p>
+<div id="info_left">
     <p> Status: {{Version.status}} </p>
-    <p> Progress: {{Version.progress}}%</p>
     <p> Seed: {{Version.seed}}</p>
-    <p> Subspace Dimensions: Number of Subspaces: {{Version.numberSubspaces}} min: {{Version.minDimension}} max:
-        {{Version.maxDimension}}</p>
     <p> Error: {{Version.error}} </p>
+</div>
+<div id="info_right">
+    <p> Subspace Dimensions: </p>
+    <p> minimum Dimension size: {{Version.minDimension}} </p>
+    <p> maximum Dimension size: {{Version.maxDimension}} </p>
+    <p> number of picked Subspaces: {{Version.numberSubspaces}} </p>
 </div>
 
 <form method="post">
     {% csrf_token %}
-    <button style="position:absolute;width:12vw;height:12vh;top:5%;right:1%" type="button"
-        onclick="location.href='/details/{{Experiment.id}}/delete'">
-        Delete the experiment </button>
+    <button type="button" id="delete" onclick="location.href='/details/{{Experiment.id}}/delete'">
+        <img id="delete_image" src="{% static '../static/png/trashcan.png' %}" /> </button>
 
-    <button style="position:absolute;width:12vw;height:12vh;top:25%;right:1%" type="button"
+    <button type="button" id="start"
         onclick="location.href='/details/{{Experiment.id}}/{{Version.edits}}.{{Version.runs}}/start'">
-        Start the experiment </button>
+        Start</button>
 
-    <button style="position:absolute;width:12vw;height:12vh;top:45%;right:1%" type="button"
+    <button type="button" id="stop"
         onclick="location.href='/details/{{Experiment.id}}/{{Version.edits}}.{{Version.runs}}/stop'">
-        Stop the experiment </button>
+        Stop</button>
 
-    <button style="position:absolute;width:12vw;height:12vh;top:65%;right:1%" type="button"
+    <button type="button" id="iterate"
         onclick="location.href='/details/{{Experiment.id}}/{{Version.edits}}.{{Version.runs}}/iterate'">
-        New iteration </button>
+        Iterate</button>
 
-    <div style="position:absolute;top:1%;right:20%;">
+    <div id="select_version">
         <p>Select Version</p>
-        <select name="show" id="show">
+        <select name="show" id="version_list">
             {% for ver in Versions %}
             {% if Version.edits == ver.edits %}
             {% if Version.runs == ver.runs %}
@@ -47,15 +52,16 @@
     </div>
 </form>
 
-<button style="position:fixed;width:12vw;height:12vh;bottom:6%;right:1%" type="button"
+<button type="button" id="edit"
     onclick="location.href='/edit/{{Version.experiment.id}}/{{Version.edits}}.{{Version.runs}}'">
-    Edit </button>
+    Edit</button>
 
-<button style="position:fixed;width:12vw;height:12vh;bottom:6%;right:31%" type="button"
+<button type="button" id="duplicate"
+    onclick="location.href='/duplicate/{{Version.experiment.id}}/{{Version.edits}}.{{Version.runs}}'">
+    Duplicate </button>
+
+<button type="button" id="results"
     onclick="location.href='/details/{{Version.experiment.id}}/{{Version.edits}}.{{Version.runs}}/results'">
     Results </button>
 
-<button style="position:fixed;width:12vw;height:12vh;bottom:6%;right:16%" type="button"
-    onclick="location.href='/duplicate/{{Version.experiment.id}}/{{Version.edits}}.{{Version.runs}}'">
-    Duplicate </button>
 {% endblock %}

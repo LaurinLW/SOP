@@ -1,13 +1,21 @@
-{% block content %}      
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href='{% static "../static/css/login.css" %}' />
 
-<div class="container py-5">
-  <h1>Login</h1>
-  <form method="POST">
-    {% csrf_token %}
-    {{ login_form }}
-    <button class="btn btn-primary" type="submit">Login</button>
-  </form>
-  <p class="text-center">Don't have an account? <a href="register">Click here to register</a>.</p>
-</div>
+<body>
+  <div class="login_div">
+    <h1>Login</h1>
+    <form method="POST">
+      {% csrf_token %}
+      <p>Username:</p>
+      <input type="text" id="username" name="username">
+      <p>Password:</p>
+      <input type="password" id="password" name="password"><br><br>
+      <button class="login_button" type="submit">Login</button>
+    </form>
+    <p class="text-center">Don't have an account? <a class="no_link_highlight" href="register">Click here to
+        register</a>.</p>
+  </div>
+</body>
 
 {% endblock %}

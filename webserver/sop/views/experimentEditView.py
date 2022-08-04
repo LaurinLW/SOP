@@ -39,8 +39,9 @@ class ExperimentEditView(LoginRequiredMixin, View):
         data = data[:-1]
         data += "}"
         data = json.loads(data)
+        categories = ["Probabilistic", "Linear Model", "Proximity-Based", "Outlier Ensembles", "Neural Networks", "Other"]
         return render(request, self.template_name, {"Algorithms": algorithms, "name": experiment.name,
-                      "version": version, "selected_data": selected_data, "data": data})
+                      "version": version, "selected_data": selected_data, "data": data, "categories": categories})
 
     def post(self, request, *args, **kwargs):
         """ This method handels the post request of the experiment-detail-site
@@ -66,6 +67,9 @@ class ExperimentEditView(LoginRequiredMixin, View):
                 newVersion.delete()
                 return redirect("/edit/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))
             newVersion.parameterSettings = parameters
+            newVersion.status = "paused"
+            newVersion.pid = None
+            newVersion.progress = 0
             newVersion.save()
             experiment.latestVersion = str(newVersion.edits) + "." + str(newVersion.runs)
             experiment.name = request.POST.get("name", experiment.name)

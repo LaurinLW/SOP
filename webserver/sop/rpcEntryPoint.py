@@ -9,6 +9,15 @@ import shutil
 
 @rpc_method
 def receiveProgress(percent, version_id):
+    """This rpc method receives a progress percent and saves it to the Version
+
+    Args:
+        percent (int): Progress percent
+        version_id (int): Identifier of the version
+
+    Returns:
+        bool:
+    """
     try:
         version = VersionModel.objects.get(pk=version_id)
     except VersionModel.DoesNotExist:
@@ -31,6 +40,15 @@ def receiveProgress(percent, version_id):
 
 @rpc_method
 def receiveError(error_message, version_id):
+    """This rpc method receives a error and saves it to the Version
+
+    Args:
+        error_message (str): Str that describes the error
+        version_id (int): Identifier of the version
+
+    Returns:
+        bool:
+    """
     try:
         version = VersionModel.objects.get(pk=version_id)
         version.error = error_message
@@ -42,6 +60,15 @@ def receiveError(error_message, version_id):
 
 @rpc_method
 def receiveResult(file, version_id):
+    """This rpc method receives a result and saves it to the Version
+
+    Args:
+        file (str): Str of the file name
+        version_id (int): Identifier of the version
+
+    Returns:
+        bool:
+    """
     try:
         version = VersionModel.objects.get(pk=version_id)
     except VersionModel.DoesNotExist:

@@ -32,36 +32,45 @@
 
     <br>
     <p>Select from the algorithms</p>
-    {% for algo in Algorithms %}
-    {% if algo in version.algorithms.all %}
-    <button type="button" class="collapsible">
-        <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}" checked> {{algo.name}}</nobr>
-    </button>
+    <p>Search: <input class="search" type="search" id="search" name="search" style="width: 20%;"/></p>
+    {% for category in categories %}
+    <button type="button" class="collapsible">{{category}}</button>
     <div class="content">
-        {% for id, value in selected_data|get:algo.id %}
-        {% if id != "ID" %}
-        <nobr>
-            <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
-                    value="{{value}}" style="width: 20%;" /></p>
-        </nobr>
+        {% for algo in Algorithms %}
+        {% if algo.category == category %}
+        {% if algo in version.algorithms.all %}
+        <button type="button" class="collapsible searchable" value="{{algo.name}}">
+            <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}" checked> {{algo.name}}
+            </nobr>
+        </button>
+        <div class="content">
+            {% for id, value in selected_data|get:algo.id %}
+            {% if id != "ID" %}
+            <nobr>
+                <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
+                        value="{{value}}" style="width: 20%;" /></p>
+            </nobr>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <button type="button" class="collapsible searchable" value="{{algo.name}}">
+            <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}"> {{algo.name}}</nobr>
+        </button>
+        <div class="content">
+            {% for id, value in data|get:algo.id %}
+            {% if id != "ID" %}
+            <nobr>
+                <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
+                        value="{{value}}" style="width: 20%;" /></p>
+            </nobr>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
         {% endif %}
         {% endfor %}
     </div>
-    {% else %}
-    <button type="button" class="collapsible">
-        <nobr><input type="checkbox" id="algorithms" name="algorithms" value="{{algo.id}}"> {{algo.name}}</nobr>
-    </button>
-    <div class="content">
-        {% for id, value in data|get:algo.id %}
-        {% if id != "ID" %}
-        <nobr>
-            <p>{{id}} = <input type="text" id="{{algo.id}}.parameters:{{id}}" name="{{algo.id}}.parameters:{{id}}"
-                    value="{{value}}" style="width: 20%;" /></p>
-        </nobr>
-        {% endif %}
-        {% endfor %}
-    </div>
-    {% endif %}
     {% endfor %}
     <br>
     <p><input type="submit" value="Create"></p>

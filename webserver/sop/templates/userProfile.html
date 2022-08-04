@@ -1,106 +1,95 @@
 {% extends "base.html" %}
 {% block content %}
 <form method="POST">
-    <!-- button to initiate algorithm upload -->
-    <button 
-			style="position:fixed;width:350px;right: 10px; height:60px;top:20%;" 
-			type="button" 
-            onclick="location.href='/uploadAlgorithm'">
-			<p style="font-size: large;">upload new Algorithm</p> 
+
+    <button id="upload_algorithm" type="button" onclick="location.href='/uploadAlgorithm'">
+        <p style="font-size: large;">upload new Algorithm</p>
     </button>
-    <!-- button to initiate dataset upload -->
-    <button 
-			style="position:fixed;width:350px;right: 10px; height:60px;top:30%;" 
-			type="button" 
-            onclick="location.href='/uploadDataset'">
-			<p style="font-size: large;">upload new Dataset</p> 
+
+    <button id="upload_dataset" type="button" onclick="location.href='/uploadDataset'">
+        <p style="font-size: large;">upload new Dataset</p>
     </button>
-    <div style="position:fixed;right:90%;top:20%">
-        <label for="username" id="username">
-            <p>username: {{username}}</p>
-        </label>
+    <div id="username">
+        <p>username: {{username}}</p>
     </div>
 
-    <div style="position:fixed;right:30%;top:20%">
-        <label for="email" id="email">
-            <p>email: {{email}}</p>
-        </label>
+    <div id="email">
+        <p>email: {{email}}</p>
     </div>
-    <!-- Algorithm Pagination -->
     {% csrf_token %}
-    <div style="position:fixed;top:30%;left:3%;">
-        <table class="algo_table" >
+    <div id="algo_table">
+        <table class="algo_table">
             <thead>
-              <tr>
-                <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
-                <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Category</th>
-                <th style="padding-bottom: 40px; padding-right: 10px; font-size: 25px;">Delete</th>
-              </tr>
+                <tr>
+                    <th style="padding-bottom:40px; padding-right: 150px;font-size: x-large;">Name</th>
+                    <th style="padding-bottom:40px; padding-right: 50px;font-size: x-large;">Category</th>
+                    <th style="padding-bottom:40px; padding-right: 10px; font-size: x-large;">Delete</th>
+                </tr>
             </thead>
             <tbody>
-              {% for algo in algos %}
+                {% for algo in algos %}
                 <tr>
-                  <td>{{ algo.name }}</td>
-                  <td>{{ algo.category }}</td>
-                  <td><button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button></td>
+                    <td>{{ algo.name }}</td>
+                    <td>{{ algo.category }}</td>
+                    <td><button type="submit" name="delete_algorithm" value="{{algo.id}}" id="delete_algo_dataset">delete</button></td>
                 </tr>
-              {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
-        <div> 
+        <div>
             {% if algos.has_other_pages %}
-                {% if algos.has_previous %}
-                    <a href="?algo_page={{ algos.previous_page_number }}">&laquo;</a>
-                {% endif %}
+            {% if algos.has_previous %}
+            <a href="?algo_page={{ algos.previous_page_number }}" class="no_link_highlight">&laquo;</a>
+            {% endif %}
             {% for i in algos.paginator.page_range %}
-                {% if algos.number == i %}
-                    <span style="color:red;">{{ i }}</span>
-                {% else %}
-                    <a href="?algo_page={{ i }}">{{ i }}</a>
-                {% endif %}
+            {% if algos.number == i %}
+            <span style="color:red;">{{ i }}</span>
+            {% else %}
+            <a href="?algo_page={{ i }}" class="no_link_highlight">{{ i }}</a>
+            {% endif %}
             {% endfor %}
             {% if algos.has_next %}
-                <a href="?algo_page={{ algos.next_page_number }}">&raquo;</a>
+            <a href="?algo_page={{ algos.next_page_number }}" class="no_link_highlight">&raquo;</a>
             {% else %}
-                <span>&raquo;</span>
+            <span>&raquo;</span>
             {% endif %}
             {% endif %}
         </div>
     </div>
     <!-- Dataset Pagination -->
-    <div style="position:fixed;top:30%;right: 30%">
-        <table class="dataset_table" >
+    <div id="dataset_table">
+        <table class="dataset_table">
             <thead>
-              <tr>
-                <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
-                <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Delete</th>
-              </tr>
+                <tr>
+                    <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
+                    <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Delete</th>
+                </tr>
             </thead>
             <tbody>
-              {% for data in datas %}
+                {% for data in datas %}
                 <tr>
-                  <td>{{ data.name }}</td>
-                  <td> <button type="submit" name="delete_dataset" value="{{data.id}}">delete</button></td>
+                    <td>{{ data.name }}</td>
+                    <td> <button type="submit" name="delete_dataset" value="{{data.id}}" id="delete_algo_dataset">delete</button></td>
                 </tr>
-              {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
-        <div> 
+        <div>
             {% if datas.has_other_pages %}
-                {% if datas.has_previous %}
-                    <a href="?data_page={{ datas.previous_page_number }}">&laquo;</a>
-                {% endif %}
+            {% if datas.has_previous %}
+            <a href="?data_page={{ datas.previous_page_number }}" class="no_link_highlight">&laquo;</a>
+            {% endif %}
             {% for i in datas.paginator.page_range %}
-                {% if datas.number == i %}
-                    <span style="color:red;">{{ i }}</span>
-                {% else %}
-                    <a href="?data_page={{ i }}">{{ i }}</a>
-                {% endif %}
+            {% if datas.number == i %}
+            <span style="color:red;">{{ i }}</span>
+            {% else %}
+            <a href="?data_page={{ i }}" class="no_link_highlight">{{ i }}</a>
+            {% endif %}
             {% endfor %}
             {% if datas.has_next %}
-                <a href="?data_page={{ datas.next_page_number }}">&raquo;</a>
+            <a href="?data_page={{ datas.next_page_number }}" class="no_link_highlight">&raquo;</a>
             {% else %}
-                <span>&raquo;</span>
+            <span>&raquo;</span>
             {% endif %}
             {% endif %}
         </div>
@@ -109,9 +98,9 @@
     <div>
         {% if messages %}
         <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+                {% endfor %}
         </ul>
         {% endif %}
     </div>

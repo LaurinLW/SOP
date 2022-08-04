@@ -1,37 +1,37 @@
 {% load static %}
-<head>
-    <title>{% block title %}SOP PSE 22{% endblock %}</title>
-	<link rel="stylesheet" href='{% static "../static/css/style.css" %}'/>
-	<script type="text/JavaScript" src="{%  static '../static/js/script.js' %}"></script>
-</head>
-<body>
-    <div id="topbar" style="position: fixed; width: 100%; height: 9%; background-color: rgb(41, 42, 43); top: 0%; left: 0%">
-        {% block topbar %}
-			<button 
-			style="position:fixed;width:18%;height:7%;top:1%;left:1%" 
-			type="button" onclick="location.href='/home'">
-			Home </button>
-			<button 
-			style="position:fixed;width:18%;height:7%;top:1%;left:20%" 
-			type="button" onclick="location.href='/newExperiment'">
-			New Experiment </button>
-			<button 
-			style="position:fixed;width:18%;height:7%;top:1%;right:20%" 
-			type="button" onclick="location.href='/profile'">
-			Profil </button>
-			<button 
-			style="position:fixed;width:18%;height:7%;top:1%;right:1%" 
-			type="button" onclick="location.href='/logout'">
-			Logout </button>
-        {% endblock %}
-    </div>
 
-    <div id="content" style="position:fixed; left: 1%; top: 10%; height: 85%; width: 99%; overflow-y: auto" >
-        {% block content %}
-        
+<head>
+	<title>{% block title %}SOP PSE 22{% endblock %}</title>
+	<link rel="stylesheet" href='{% static "../static/css/style.css" %}' />
+	<script type="text/JavaScript" src="{% static '../static/js/collapsible.js' %}"></script>
+	<script type="text/JavaScript" src="{% static '../static/js/search.js' %}"></script>
+	<script type="text/JavaScript" src="{% static '../static/js/update.js' %}"></script>
+</head>
+
+<body>
+	<div id="topbar">
+		{% block topbar %}
+		<button type="button" id="home" onclick="location.href='/home'">
+			Home </button>
+		<button type="button" id="new_experiment"
+			onclick="location.href='/newExperiment'">
+			New Experiment </button>
+		<button type="button" id="profil"
+			onclick="location.href='/profile'">
+			Profil </button>
+		<button type="button" id="logout"
+			onclick="location.href='/logout'">
+			Logout </button>
 		{% endblock %}
 	</div>
-	<div id="bottom" style="position: fixed; width: 100%; height: 5%; background-color: rgb(41, 42, 43); bottom: 0%; left: 0%">
-    </div>
+
+	<div id="content">
+		{% block content %}
+
+		{% endblock %}
+	</div>
+	<div id="bottombar">
+	</div>
 </body>
+
 </html>

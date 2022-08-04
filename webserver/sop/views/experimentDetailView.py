@@ -4,6 +4,7 @@ from sop.models.experimentModel import ExperimentModel
 from sop.models.versionModel import VersionModel
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
+from django.http import JsonResponse
 
 
 class ExperimentDetailView(View, LoginRequiredMixin):
@@ -21,8 +22,12 @@ class ExperimentDetailView(View, LoginRequiredMixin):
         experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
         version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
         versions = VersionModel.objects.all().filter(experiment_id=experiment.id)
-        if experiment.creator == request.user:
+        if experiment.creator == request.user and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
             return render(request, self.template_name, {"Experiment": experiment, "Version": version, "Versions": versions})
+        elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            update_progress = f'{version.progress}'
+            update_status = f'{version.status}'
+            return JsonResponse({"update_progress": update_progress, "update_status": update_status})
         return redirect("/")
 
     def post(self, request, *args, **kwargs):

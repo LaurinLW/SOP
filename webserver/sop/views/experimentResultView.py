@@ -8,9 +8,17 @@ import os
 
 
 class ExperimentResultView(View, LoginRequiredMixin):
+    """ This class is a subclass of LoginRequiredMixin and View
+    """
     template_name = 'experimentResults.html'
 
     def get(self, request, *args, **kwargs):
+        """ This method handels all result requests from Users
+
+        Returns:
+            HttpResponse: Return an HttpResponse whose content is filled with
+            the result of calling django.shortcuts.render with the passed arguments
+        """
         experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
         version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
         results = ResultModel.objects.all().filter(version_id=version.id)
