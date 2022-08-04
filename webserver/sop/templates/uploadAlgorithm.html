@@ -1,6 +1,5 @@
 <html>
     {% extends "base.html" %}
-
     {% block content %}
     <body>
         <form method="post" enctype="multipart/form-data">
@@ -10,13 +9,11 @@
                 <label name="file" for="algorithm_uploads">Chose algorithm to upload (.py)</label>
                 <input type="file" id="file" name="file" accept=".py">
             </div>
-
             <!-- name -->
             <div>
                 name
                 <input type="text" id="name" name ="name">
             </div>
-
             <!-- button to confirm upload -->
             <div>
                 <button name="upload_btn"type="submit" style="width:200px; height:60px; position:fixed;top:20%">
@@ -25,19 +22,17 @@
                 </p>
             </button>
             </div>
-
             <div>
                 <label for="category">Chose a category</label>
                 <select name="category" id="category">
-                    <option value="probabilistic">Probabilistic</option>
-                    <option value="linear_model">Linear Model</option>
-                    <option value="proximity_based">Proximity Based</option>
-                    <option value="outlier_ensembles">Outlier Ensembles</option>
-                    <option value="neural_networks">Neural Networks</option>
-                    <option value="other">Other</option>
+                    <option value="Probabilistic">Probabilistic</option>
+                    <option value="Linear Model">Linear Model</option>
+                    <option value="Proximity-Based">Proximity-Based</option>
+                    <option value="Outlier Ensembles">Outlier Ensembles</option>
+                    <option value="Neural Networks">Neural Networks</option>
+                    <option value="Other">Other</option>
                 </select>
             </div>
-
             {% if messages %}
             <ul class="messages">
                 {% for message in messages %}

@@ -1,24 +1,20 @@
 {% extends "base.html" %}
-
-
 {% block content %}
 <form method="POST">
-    
-
+    <!-- button to initiate algorithm upload -->
     <button 
 			style="position:fixed;width:350px;right: 10px; height:60px;top:20%;" 
 			type="button" 
             onclick="location.href='/uploadAlgorithm'">
 			<p style="font-size: large;">upload new Algorithm</p> 
     </button>
-
+    <!-- button to initiate dataset upload -->
     <button 
 			style="position:fixed;width:350px;right: 10px; height:60px;top:30%;" 
 			type="button" 
             onclick="location.href='/uploadDataset'">
 			<p style="font-size: large;">upload new Dataset</p> 
     </button>
-    
     <div style="position:fixed;right:90%;top:20%">
         <label for="username" id="username">
             <p>username: {{username}}</p>
@@ -30,23 +26,20 @@
             <p>email: {{email}}</p>
         </label>
     </div>
-    
     <!-- Algorithm Pagination -->
     {% csrf_token %}
     <div style="position:fixed;top:30%;left:3%;">
         <table class="algo_table" >
             <thead>
               <tr>
-                <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">ID</th>
                 <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
                 <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Category</th>
-                <th style="padding-bottom: 40px; padding-right: 10px; font-size: 25px;"></th>
+                <th style="padding-bottom: 40px; padding-right: 10px; font-size: 25px;">Delete</th>
               </tr>
             </thead>
             <tbody>
               {% for algo in algos %}
                 <tr>
-                  <td>{{ algo.id }}</td>
                   <td>{{ algo.name }}</td>
                   <td>{{ algo.category }}</td>
                   <td><button type="submit" name="delete_algorithm" value="{{algo.id}}">delete</button></td>
@@ -74,13 +67,11 @@
             {% endif %}
         </div>
     </div>
-
     <!-- Dataset Pagination -->
-    <div style="position:fixed;top:30%;left:33%">
+    <div style="position:fixed;top:30%;right: 30%">
         <table class="dataset_table" >
             <thead>
               <tr>
-                <th style="padding-bottom:40px; padding-right: 100px;font-size: 25px;">ID</th>
                 <th style="padding-bottom:40px; padding-right: 150px;font-size: 25px;">Name</th>
                 <th style="padding-bottom:40px; padding-right: 50px;font-size: 25px;">Delete</th>
               </tr>
@@ -88,7 +79,6 @@
             <tbody>
               {% for data in datas %}
                 <tr>
-                  <td>{{ data.id }}</td>
                   <td>{{ data.name }}</td>
                   <td> <button type="submit" name="delete_dataset" value="{{data.id}}">delete</button></td>
                 </tr>
@@ -96,26 +86,26 @@
             </tbody>
         </table>
         <div> 
-            {% if algos.has_other_pages %}
-                {% if algos.has_previous %}
-                    <a href="?page={{ algos.previous_page_number }}">&laquo;</a>
+            {% if datas.has_other_pages %}
+                {% if datas.has_previous %}
+                    <a href="?data_page={{ datas.previous_page_number }}">&laquo;</a>
                 {% endif %}
-            {% for i in algos.paginator.page_range %}
-                {% if algos.number == i %}
+            {% for i in datas.paginator.page_range %}
+                {% if datas.number == i %}
                     <span style="color:red;">{{ i }}</span>
                 {% else %}
-                    <a href="?page={{ i }}">{{ i }}</a>
+                    <a href="?data_page={{ i }}">{{ i }}</a>
                 {% endif %}
             {% endfor %}
-            {% if algos.has_next %}
-                <a href="?page={{ algos.next_page_number }}">&raquo;</a>
+            {% if datas.has_next %}
+                <a href="?data_page={{ datas.next_page_number }}">&raquo;</a>
             {% else %}
                 <span>&raquo;</span>
             {% endif %}
             {% endif %}
         </div>
     </div>
-
+    <!-- display warning messages if something went wrong -->
     <div>
         {% if messages %}
         <ul class="messages">
@@ -125,6 +115,5 @@
         </ul>
         {% endif %}
     </div>
-
 </form>
 {% endblock %}
