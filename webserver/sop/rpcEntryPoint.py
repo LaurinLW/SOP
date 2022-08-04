@@ -1,7 +1,8 @@
 from modernrpc.core import rpc_method
 from sop.models.versionModel import VersionModel
-from sop.forms.resultForm import ResultForm
-from sop.forms.subspaceForm import SubspaceForm
+from sop.models.subspaceModel import SubspaceModel
+from sop.models.resultModel import ResultModel
+from django.core.files.base import File
 import os
 import shutil
 
@@ -45,14 +46,14 @@ def receiveResult(file, version_id):
         version = VersionModel.objects.get(pk=version_id)
     except VersionModel.DoesNotExist:
         return False
-    subspace = SubspaceForm()
-    result = ResultForm()
-    subspace.dataset = version.experiment.dataset
-    result.resultFile.name = file
+    subspace = SubspaceModel.objects.create(dataset=version.experiment.dataset)
+    result = ResultModel()
     result.subspace = subspace
     result.version = version
-    if subspace.is_valid() and result.is_valid():
-        subspace.save()
-        result.save()
-        return True
-    return False
+    result.save()
+
+    experimente_dir = os.path.join(os.path.abspath(os.getcwd()), 'experimente')
+    export_path = os.path.join(experimente_dir, str(version.experiment.id) + '.' + str(version.edits) + '.' + str(version.runs), 'export', file)
+    result.resultFile.save(file, File(open(export_path)))
+
+    return True
