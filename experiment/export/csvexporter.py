@@ -51,6 +51,7 @@ class CSVExporter(ex.Exporter):
                                       columns=export_job.get_subspace_dimensions(),
                                       dtype=export_job.get_outlier_scores().dtype)
                     self._dataframes[dim_tup] = df
+                    df.insert(0, "index", export_job.get_indexes_after_clean())
 
                 df[str(export_job.model)] = export_job.get_outlier_scores()
 
@@ -59,7 +60,7 @@ class CSVExporter(ex.Exporter):
 
     def finalize(self):
         for df in self._dataframes.values():
-            df.to_csv(os.path.join(self._path, f"subspace_result{self._next_export_id}.csv"))
+            df.to_csv(os.path.join(self._path, f"subspace_result{self._next_export_id}.csv"), index=False)
             self._next_export_id += 1
 
     def finalize_single(self, dims: list[str]) -> str:
@@ -73,7 +74,7 @@ class CSVExporter(ex.Exporter):
 
         export_file_name = f"subspace_result{self._next_export_id}.csv"
 
-        export.to_csv(os.path.join(self._path, export_file_name))
+        export.to_csv(os.path.join(self._path, export_file_name), index=False)
         self._next_export_id += 1
 
         return export_file_name

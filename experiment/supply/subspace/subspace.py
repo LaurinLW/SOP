@@ -30,7 +30,7 @@ class Subspace:
 
     @property
     def indexes_after_clean(self) -> np.ndarray:
-        return self.indexes_after_clean
+        return self.__indexes_after_cleaning
 
     @data.setter
     def set__data(self):
