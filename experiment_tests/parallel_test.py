@@ -25,7 +25,7 @@ class ParallelRunnerTestCase(unittest.TestCase):
         for i in range(10):
             self.data_shape = (10, 3)
             data, y = generate_data(train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1])
-            self.subspace_list.append(Subspace(data, None))
+            self.subspace_list.append(Subspace(data, None, np.ndarray([0, 1, 2])))
 
         for subspace in self.subspace_list:
             self.job_list.append(Job(subspace, KNN()))

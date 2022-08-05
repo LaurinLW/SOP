@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from pyod.models.knn import KNN
 from pyod.models.ecod import ECOD
 from pyod.utils.data import generate_data
@@ -16,7 +17,7 @@ class SerialTestCase(unittest.TestCase):
         self.data_shape = (10, 3)
         data, y = generate_data(train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1])
         dimension_names = ["1", "2", "3"]
-        self.subspace = Subspace(data, dimension_names)
+        self.subspace = Subspace(data, dimension_names, np.ndarray([0, 1, 2]))
         self.jobs: list[Job] = [Job(self.subspace, KNN()), Job(self.subspace, ECOD())]
 
         self.in_q: Queue[Job] = Queue()

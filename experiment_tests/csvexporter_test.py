@@ -60,7 +60,7 @@ class CSVExporterTest(unittest.TestCase):
             for j in range(d.shape[1]):
                 dimensions.append(f"dim{j},{i}")
             for j in range(len(self.models)):
-                subspace = Subspace(d, dimensions)
+                subspace = Subspace(d, dimensions, np.ndarray([0, 1, 2]))
                 job = Job(subspace, self.fitted_models[len(self.models)*i+j])
                 self.results.append(Result(job))
 

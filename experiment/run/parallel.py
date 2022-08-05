@@ -11,10 +11,11 @@ import multiprocessing as mp
 
 
 class Parallel(Runner):
-    """This class is a Runner implementation that runs multiple Jobs in parallel.
-    """
+    """This class is a Runner implementation that runs multiple Jobs in parallel."""
 
-    def __init__(self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event, num_procs: int):
+    def __init__(
+        self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event, num_procs: int
+    ):
         super().__init__(in_q, out_q, stop_stage)
         self._num_procs: int = num_procs
         self._id_counter: int = 0
@@ -33,8 +34,10 @@ class Parallel(Runner):
 
     def run(self):
         # beware: Processes should only be terminated when the queues are no longer needed. Otherwise the queues(local) may be corrupted
-        processes = [mp.Process(target=_process_execution, args=(self._l_q_in, self._l_q_out))
-                     for i in range(self._num_procs)]
+        processes = [
+            mp.Process(target=_process_execution, args=(self._l_q_in, self._l_q_out))
+            for i in range(self._num_procs)
+        ]
         for p in processes:
             p.start()
 
@@ -47,9 +50,10 @@ class Parallel(Runner):
         self._manager.clean_up()
 
     def _get_jobs(self):
-        """Gets jobs from in_q, loads shared memory, puts jobs in the local execution queue
-        """
-        while (len(self._job_dict) <= self._execution_limit or (self._next_job is not None)) and not self._stop_stage.is_set():
+        """Gets jobs from in_q, loads shared memory, puts jobs in the local execution queue"""
+        while (
+            len(self._job_dict) <= self._execution_limit or (self._next_job is not None)
+        ) and not self._stop_stage.is_set():
             if self._next_job is None:
 
                 try:
@@ -57,7 +61,7 @@ class Parallel(Runner):
                 except Exception:
                     # could not get job
                     # sanity check
-                    assert(self._next_job is None)
+                    assert self._next_job is None
                     break
 
                 self._manager.register_subspace(self._next_job.get_subspace_data())
@@ -66,11 +70,15 @@ class Parallel(Runner):
                 self._id_counter += 1
                 self._job_dict[j_id] = self._next_job
                 data: np.ndarray = self._next_job.get_subspace_data()
-                self._next_local_job = _Local_Job(self._next_job.model,
-                                                  self._manager.get_shared_memory_name(self._next_job.get_subspace_data()),
-                                                  j_id,
-                                                  data.dtype,
-                                                  data.shape)
+                self._next_local_job = _Local_Job(
+                    self._next_job.model,
+                    self._manager.get_shared_memory_name(
+                        self._next_job.get_subspace_data()
+                    ),
+                    j_id,
+                    data.dtype,
+                    data.shape,
+                )
 
             try:
                 self._l_q_in.put(item=self._next_local_job, timeout=self._q_timeout)
@@ -90,7 +98,10 @@ class Parallel(Runner):
                         job.model = self._next_local_job.model
                         self._next_result = Result(job)
                     else:
-                        self._next_result = Result(self._job_dict[self._next_local_job.j_id], self._next_local_job.e)
+                        self._next_result = Result(
+                            self._job_dict[self._next_local_job.j_id],
+                            self._next_local_job.e,
+                        )
                 except Exception:
                     # No finished Job available
                     break
@@ -107,10 +118,16 @@ class Parallel(Runner):
 
 
 class _Local_Job:
-    """simple record class holding job information for processes
-    """
+    """simple record class holding job information for processes"""
 
-    def __init__(self, model: pyod.models.base.BaseDetector, shm_name: str, j_id: int, dtype: np.dtype, data_shape: np.shape):
+    def __init__(
+        self,
+        model: pyod.models.base.BaseDetector,
+        shm_name: str,
+        j_id: int,
+        dtype: np.dtype,
+        data_shape: np.shape,
+    ):
         self.model: pyod.models.BaseDetector = model
         self.shm_name: str = shm_name
         self.j_id: int = j_id
@@ -132,7 +149,9 @@ def _process_execution(l_q_in: Queue[_Local_Job], l_q_out: Queue[_Local_Job]):
 
         if shm is not None:
             try:
-                data: np.ndarray = np.ndarray(shape=loc_job.data_shape, dtype=loc_job.dtype, buffer=shm.buf)
+                data: np.ndarray = np.ndarray(
+                    shape=loc_job.data_shape, dtype=loc_job.dtype, buffer=shm.buf
+                )
                 loc_job.model.fit(data)
 
             except Exception as e:
@@ -198,7 +217,9 @@ class _MemoryManager:
             return shm.name
 
     def _get_shared_memory(self, data: np.ndarray) -> SharedMemory:
-        list: list[tuple[np.ndarray, SharedMemory]] = [item for item in self._memory_mapping if item[0] is data]
+        list: list[tuple[np.ndarray, SharedMemory]] = [
+            item for item in self._memory_mapping if item[0] is data
+        ]
         if len(list) == 0:
             return None
         else:

@@ -40,7 +40,7 @@ class SubspaceGenerator:
         self.__random_instance.seed(seed)
         self.__cleanedData: DataFrame = cleaner.clean(data)
         self.__encoder: Encoder = encoder
-        self.__counter: int = 0
+        self.__quantity_created_subspaces: int = 0
         self.created_subspaces_dimensions: list[list[int]] = list()
 
     def __next__(self) -> Subspace:
@@ -52,26 +52,30 @@ class SubspaceGenerator:
         Returns:
             Subspace: returns the created Subspace
         """
-        if self.__counter < self.__number_subspaces:
-            while True:
-                amount_dimensions: int = self.__random_instance.randrange(
-                    self.__min_dimension, self.__max_dimension
-                )
-                subspace_dimensions: list = self.__random_instance.sample(
-                    range(0, len(self.__cleanedData.columns)), amount_dimensions
-                )
-                subspace_dimensions.sort()
-                if self.created_subspaces_dimensions.count(subspace_dimensions) == 1:
-                    continue
-                self.created_subspaces_dimensions.append(subspace_dimensions)
-                subspace_encoded: DataFrame = self.__encoder.encode(
-                    self.__cleanedData.iloc[:, subspace_dimensions]
-                )
-                subspace_dimensions_names: str = list(subspace_encoded.columns)
-                subspace_array: np.ndarray = subspace_encoded.to_numpy(dtype=np.float32)
-                self.__counter += 1
-                return Subspace(subspace_array, subspace_dimensions_names)
+        if self.__quantity_created_subspaces < self.__number_subspaces:
+            subspace_index: np.ndarray = self.__cleanedData.index.to_numpy()
+            subspace_dimensions = self.__create_unique_subspace_dimensions()
+            self.created_subspaces_dimensions.append(subspace_dimensions)
+            subspace_encoded: DataFrame = self.__encoder.encode(
+                self.__cleanedData.iloc[:, subspace_dimensions]
+            )
+            subspace_dimensions_names: str = list(subspace_encoded.columns)
+            subspace_array: np.ndarray = subspace_encoded.to_numpy(dtype=np.uint32)
+            self.__quantity_created_subspaces += 1
+            return Subspace(subspace_array, subspace_dimensions_names, subspace_index)
         raise StopIteration
+
+    def __create_unique_subspace_dimensions(self) -> list[int]:
+        while True:
+            amount_dimensions: int = self.__random_instance.randrange(
+                self.__min_dimension, self.__max_dimension
+            )
+            subspace_dimensions: list[int] = self.__random_instance.sample(
+                range(0, len(self.__cleanedData.columns)), amount_dimensions
+            )
+            subspace_dimensions.sort()
+            if subspace_dimensions not in self.created_subspaces_dimensions:
+                return subspace_dimensions
 
     def __iter__(self) -> object:
         """returns itself to be iterable
