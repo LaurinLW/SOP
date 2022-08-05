@@ -1,7 +1,18 @@
 from django.urls import path
 from sop.permission.views import loginView, registerView, logoutView, profileView
-from sop.views import homeView, experimentCreateView, experimentDetailView, experimentDuplicateView, experimentEditView, experimentStartView
-from sop.views import algorithmUploadView, datasetUploadView, experimentStopView, experimentDeleteView, experimentIterateView, experimentResultView
+from sop.views import (homeView,
+                       experimentCreateView,
+                       experimentDetailView,
+                       experimentDuplicateView,
+                       experimentEditView,
+                       experimentStartView,
+                       algorithmUploadView,
+                       datasetUploadView,
+                       experimentStopView,
+                       experimentDeleteView,
+                       experimentIterateView,
+                       experimentResultView,
+                       ExperimentDashboardView)
 from modernrpc.views import RPCEntryPoint
 
 urlpatterns = [
@@ -23,5 +34,7 @@ urlpatterns = [
     path('duplicate/<int:detail_id>/<str:edits>.<str:runs>', experimentDuplicateView.ExperimentDuplicateView.as_view()),
     path('uploadAlgorithm', algorithmUploadView.AlgorithmUploadView.as_view()),
     path('uploadDataset', datasetUploadView.DatasetUploadView.as_view()),
-    path('rpc', RPCEntryPoint.as_view())
+    path('rpc', RPCEntryPoint.as_view()),
+    path('dashboard/<int:detail_id>/<str:edits>.<str:runs>', ExperimentDashboardView.as_view()),
+    path('dashboard/<int:detail_id>/<str:edits>.<str:runs>/<str:metric>', ExperimentDashboardView.as_view()),
 ]

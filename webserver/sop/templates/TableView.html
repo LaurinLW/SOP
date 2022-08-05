@@ -1,0 +1,16 @@
+<div style="overflow: scroll;width: 100%;height: 100%;">
+<table>
+    <tr>
+        {% for name in columns %}
+            <th>{{name}}</th>
+        {% endfor %}
+    </tr>
+    {% for row in data %}
+        <tr>
+            {% for value in row %}
+                <td>{{value}}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+</div>
