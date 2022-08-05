@@ -55,8 +55,8 @@ def setup_f(experimente):
 
 
 def config_f(experimente):
-    print("Updating settings.py...")
-    set_setting("SHARED_EXPERIMENTE", experimente)
+    print('Updating settings.py...')
+    set_setting('SHARED_EXPERIMENT', experimente)
 
 
 def start_f():
