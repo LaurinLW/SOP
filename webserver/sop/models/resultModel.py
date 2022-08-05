@@ -7,6 +7,6 @@ class ResultModel(models.Model):
     """ This class is the supclass of the Model-class from Django.
         It contains the essentail fields and data that is stored in the database.
     """
-    resultFile = models.FileField()
+    resultFile = models.FileField(upload_to='sop/results')
     subspace = models.ForeignKey(SubspaceModel, on_delete=models.CASCADE, null=True)
     version = models.ForeignKey(VersionModel, on_delete=models.CASCADE)
