@@ -37,3 +37,6 @@ class Job:
 
     def get_parameters(self) -> dict:
         return self.model.get_params()
+
+    def get_indexes_after_clean(self) -> np.ndarray:
+        return self._subspace.indexes_after_clean

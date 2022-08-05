@@ -3,7 +3,6 @@ import numpy as np
 import os
 import unittest
 
-from django.forms import JSONField
 
 from experiment.run.job import Job
 from experiment.supply.job_generator import JobGenerator
@@ -17,7 +16,7 @@ class JobGeneratorTest(unittest.TestCase):
         self.models: list[str] = ["pyod.models.abod.ABOD", "pyod.models.anogan.AnoGAN"]
         self.np_array: np.ndarray = np.array([[1, 2, 5], [10, 11, 14], [19, 20, 23]])
         self.dimensions: list[str] = ["Eve", "Alice", "Bob"]
-        self.subspace: Subspace = Subspace(self.np_array, self.dimensions)
+        self.subspace: Subspace = Subspace(self.np_array, self.dimensions, np.ndarray([0, 1, 2]))
         test_dir = (os.path.sep).join((__file__.split(".")[0]).split(os.path.sep)[0:-1])
         self.input_json_file: TextIO = open(os.path.join(test_dir, "test_resources", "job_generator_test_json.json"), "r")
         """self.input_json_file: JSONField = {

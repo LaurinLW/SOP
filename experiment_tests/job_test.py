@@ -13,7 +13,7 @@ class JobTestCase(unittest.TestCase):
             train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1]
         )
         self.dimension_names = ["1", "2", "3"]
-        self.subspace = Subspace(self.data, self.dimension_names)
+        self.subspace = Subspace(self.data, self.dimension_names, np.ndarray([0, 1, 2]))
         self.model = KNN()
         self.job = Job(self.subspace, self.model)
         self.job.model.fit(self.data)

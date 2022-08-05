@@ -64,13 +64,12 @@ class JobSupplier(PipelineStage):
         """method that creates Jobs and puts them into the Queue to be processed when possible"""
 
         iterator = iter(self.subspace_generator)
-        jobs_failed_to_add: list[Job] = list()
 
         while not self.__stop.is_set():
 
             job_list: list[Job] = list()
 
-            if len(jobs_failed_to_add) == 0:
+            if len(self.__jobs_failed_to_add) == 0:
                 try:
                     subspace = next(iterator)
 
@@ -79,13 +78,13 @@ class JobSupplier(PipelineStage):
 
                 job_list: list[Job] = self.__job_generator.generate(subspace)
 
-            job_list: list[Job] = job_list + jobs_failed_to_add
-            jobs_failed_to_add.clear()
+            job_list: list[Job] = job_list + self.__jobs_failed_to_add
+            self.__jobs_failed_to_add.clear()
 
             for job in job_list:
                 try:
                     self.__out_queue.put(job, True, timeout=self._q_timeout)
 
                 except Exception:
-                    jobs_failed_to_add.append(job)
+                    self.__jobs_failed_to_add.append(job)
                     continue
