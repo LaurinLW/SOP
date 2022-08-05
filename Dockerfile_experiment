@@ -11,5 +11,6 @@ WORKDIR /experiment
 COPY ./experiment ./
 
 ENV PYTHONPATH "${PYTHONPATH}:/"
+ENV PYTHONPATH "${PYTHONPATH}:/experimentconfig/algorithms/useralgorithms"
 
 ENTRYPOINT python experimentmain.py

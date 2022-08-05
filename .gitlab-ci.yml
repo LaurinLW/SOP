@@ -14,26 +14,7 @@ test:
     - cd webserver && python manage.py makemigrations && python manage.py migrate
     - python manage.py test sop.tests
 
-upload_registry:
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  image: docker:latest
-  stage: deploy
-  tags: 
-    - image
-  services:
-    - docker:dind
-  script:
-    - docker build -t sop-web -f Dockerfile_web .
-    - docker login -u $REGISTRY_USER -p $REGISTRY_PW $REGISTRY_URL
-    - docker tag sop-web $REGISTRY_URL/sop-web:latest
-    - docker push $REGISTRY_URL/sop-web:latest
-    - docker build -t sop-experiment -f Dockerfile_experiment .
-    - docker tag sop-experiment $REGISTRY_URL/sop-experiment:latest
-    - docker push $REGISTRY_URL/sop-experiment:latest
-
 deploy:
-  needs: ["upload_registry"]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   image: alpine:latest
