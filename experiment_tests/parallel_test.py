@@ -12,10 +12,13 @@ from multiprocessing.shared_memory import SharedMemory
 import time
 import numpy as np
 import signal
+import timeout_decorator
 
 
 class ParallelRunnerTestCase(unittest.TestCase):
-    # TODO testing with job execution
+
+    timeout = 20
+
     def setUp(self) -> None:
         # handle ctrl-c so that this program can be shut down without resource leaking
         signal.signal(signal.SIGINT, self.signal_handler)
@@ -46,11 +49,28 @@ class ParallelRunnerTestCase(unittest.TestCase):
         time.sleep(2)
         exit()
 
+    @timeout_decorator.timeout(timeout)
     def test_parallel_terminate(self):
         self.parallel.start()
         time.sleep(1)
         self.stop.set()
         self.parallel.join(timeout=5)
+
+    @timeout_decorator.timeout(timeout)
+    def test_single_job(self):
+        self.parallel.start()
+        self.in_q.put(self.job_list[0])
+        # self.in_q.put(self.job_list[1])
+        self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
+
+    @timeout_decorator.timeout(timeout)
+    def test_multiple_jobs(self):
+        self.parallel.start()
+        for j in self.job_list:
+            self.in_q.put(j)
+
+        for i in range(len(self.job_list)):
+            self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
 
 
 class MemoryManagerTestCase(unittest.TestCase):

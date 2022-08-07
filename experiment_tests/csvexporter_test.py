@@ -16,11 +16,14 @@ import time
 import pandas as pd
 import numpy as np
 from experiment.export.exporter import Exporter
+import timeout_decorator
 
 # TODO missing tests involving proper ProgressControll
 
 
 class CSVExporterTest(unittest.TestCase):
+
+    timeout = 10
 
     export_dir = "export"
     export_path = ""
@@ -62,7 +65,7 @@ class CSVExporterTest(unittest.TestCase):
                 dimensions.append(f"dim{j},{i}")
             for j in range(len(self.models)):
                 subspace = Subspace(d, dimensions, indices)
-                job = Job(subspace, self.fitted_models[len(self.models)*i+j])
+                job = Job(subspace, self.fitted_models[len(self.models) * i + j])
                 self.results.append(Result(job))
 
         delete_directory_contents(self.export_path)
@@ -71,6 +74,7 @@ class CSVExporterTest(unittest.TestCase):
     def tearDown(self):
         self.stop_stage.set()
 
+    @timeout_decorator.timeout(timeout)
     def test_single_result(self):
         self.in_q.put(self.results[0])
         # to make sure data is handled, in real used finalize is only called after all results are handled
@@ -83,6 +87,7 @@ class CSVExporterTest(unittest.TestCase):
         self.assertTrue(np.allclose(df_arr[:, -1], self.fitted_models[0].decision_scores_))
 
     @unittest.skip
+    @timeout_decorator.timeout(timeout)
     def test_multiple_results(self):
         for r in self.results:
             self.in_q.put(r)
@@ -96,19 +101,21 @@ class CSVExporterTest(unittest.TestCase):
             columns: int = data.shape[1]
             # check input data
             # first column contains indices
-            self.assertTrue(np.allclose(df_arr[:, 1:columns+1], data))
+            self.assertTrue(np.allclose(df_arr[:, 1:columns + 1], data))
             # check scores
             for j in range(len(self.models)):
-                df_scores = df[str(self.fitted_models[i*len(self.models)+j])]
-                m_scores = self.fitted_models[i*len(self.models)+j].decision_scores_
+                df_scores = df[str(self.fitted_models[i * len(self.models) + j])]
+                m_scores = self.fitted_models[i * len(self.models) + j].decision_scores_
                 self.assertTrue(np.allclose(df_scores, m_scores))
 
+    @timeout_decorator.timeout(timeout)
     def test_no_result(self):
         self.exporter.finalize()
         self.stop_stage.set()
         self.exporter.join()
 
     @unittest.skip
+    @timeout_decorator.timeout(timeout)
     def test_finalize_single(self):
         for r in self.results:
             self.in_q.put(r)
@@ -123,7 +130,7 @@ class CSVExporterTest(unittest.TestCase):
         columns: int = data.shape[1]
         # check input data
         # first column contains indices
-        self.assertTrue(np.allclose(df_arr[:, 1:columns+1], data))
+        self.assertTrue(np.allclose(df_arr[:, 1:columns + 1], data))
         # check scores
         for j in range(len(self.models)):
             df_scores = df[str(self.fitted_models[j])]

@@ -10,9 +10,13 @@ from experiment.supply.subspace.subspace import Subspace
 from threading import Event
 from queue import Queue
 import time
+import timeout_decorator
 
 
 class SerialTestCase(unittest.TestCase):
+
+    timeout = 20
+
     def setUp(self) -> None:
         self.data_shape = (10, 3)
         data, y = generate_data(train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1])
@@ -25,6 +29,7 @@ class SerialTestCase(unittest.TestCase):
         self.stop = Event()
         self.serial = Serial(self.in_q, self.out_q, self.stop)
 
+    @timeout_decorator.timeout(timeout)
     def test_stop_no_jobs(self):
         self.serial.start()
         time.sleep(1)
@@ -35,6 +40,7 @@ class SerialTestCase(unittest.TestCase):
         self.assertFalse(self.serial.is_alive())
 
     # test if jobs are properly completed
+    @timeout_decorator.timeout(timeout)
     def test_execute_job(self):
         self.serial.start()
         for j in self.jobs:
@@ -46,6 +52,7 @@ class SerialTestCase(unittest.TestCase):
         self.stop.set()
 
     # test what happens if out_q length is lower than the results that should be put into it
+    @timeout_decorator.timeout(timeout)
     def test_limited_out_q_length(self):
         lim_out_q: Queue[Result] = Queue(maxsize=1)
         lim_serial = Serial(self.in_q, lim_out_q, self.stop)
@@ -63,6 +70,7 @@ class SerialTestCase(unittest.TestCase):
         self.stop.set()
 
     # test with model that throws an exception
+    @timeout_decorator.timeout(timeout)
     def test_throwing_model(self):
         throwing_job = Job(self.subspace, KNN(n_neighbors=self.data_shape[0] + 1))
         self.serial.start()

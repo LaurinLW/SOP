@@ -8,52 +8,46 @@ from typing import Optional
 import pyod
 import numpy as np
 import multiprocessing as mp
+from multiprocessing import Pool
+from multiprocessing.pool import AsyncResult
 
 
 class Parallel(Runner):
-    """This class is a Runner implementation that runs multiple Jobs in parallel."""
+    """This class is a Runner implementation that runs multiple Jobs in parallel.
+    """
 
-    def __init__(
-        self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event, num_procs: int
-    ):
+    def __init__(self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event, num_procs: int):
         super().__init__(in_q, out_q, stop_stage)
         self._num_procs: int = num_procs
         self._id_counter: int = 0
-        self._manager: _MemoryManager = _MemoryManager()
-        # local queues for processes
-        self._queue_manager: mp.managers.SyncManager = mp.Manager()
-        self._l_q_in: Queue[_Local_Job] = self._queue_manager.Queue()
-        self._l_q_out: Queue[_Local_Job] = self._queue_manager.Queue()
+        self._memory_manager: _MemoryManager = _MemoryManager()
         # to avoid loading to much data in shared memory
         self._execution_limit = 2 * num_procs
         # map jobs to id for proper
         self._job_dict: dict[int, Job] = dict()
         self._next_job: Optional[Job] = None
-        self._next_local_job: Optional[_Local_Job] = None
+        self._next_local_job: Optional[_LocalJob] = None
         self._next_result: Optional[Result] = None
 
+        # not using spawn could cause deadlocks. See: https://pythonspeed.com/articles/python-multiprocessing/
+        # deadlocks occured in unittest execution of all tests
+        self._pool: Pool = mp.get_context("spawn").Pool(num_procs)
+        self._async_results: list[AsyncResult] = list()
+
     def run(self):
-        # beware: Processes should only be terminated when the queues are no longer needed. Otherwise the queues(local) may be corrupted
-        processes = [
-            mp.Process(target=_process_execution, args=(self._l_q_in, self._l_q_out))
-            for i in range(self._num_procs)
-        ]
-        for p in processes:
-            p.start()
 
         while not self._stop_stage.is_set():
             self._get_jobs()
             self._export_finished()
 
-        for p in processes:
-            p.terminate()
-        self._manager.clean_up()
+        self._memory_manager.clean_up()
+        self._pool.close()
+        self._pool.terminate()
 
     def _get_jobs(self):
-        """Gets jobs from in_q, loads shared memory, puts jobs in the local execution queue"""
-        while (
-            len(self._job_dict) <= self._execution_limit or (self._next_job is not None)
-        ) and not self._stop_stage.is_set():
+        """Gets jobs from in_q, loads shared memory, puts jobs in the local execution queue
+        """
+        while (len(self._job_dict) <= self._execution_limit or (self._next_job is not None)) and not self._stop_stage.is_set():
             if self._next_job is None:
 
                 try:
@@ -61,105 +55,110 @@ class Parallel(Runner):
                 except Exception:
                     # could not get job
                     # sanity check
-                    assert self._next_job is None
+                    assert(self._next_job is None)
                     break
 
-                self._manager.register_subspace(self._next_job.get_subspace_data())
+                self._memory_manager.register_subspace(self._next_job.get_subspace_data())
 
                 j_id = self._id_counter
                 self._id_counter += 1
                 self._job_dict[j_id] = self._next_job
                 data: np.ndarray = self._next_job.get_subspace_data()
-                self._next_local_job = _Local_Job(
-                    self._next_job.model,
-                    self._manager.get_shared_memory_name(
-                        self._next_job.get_subspace_data()
-                    ),
-                    j_id,
-                    data.dtype,
-                    data.shape,
-                )
+                self._next_local_job = _LocalJob(self._next_job.model,
+                                                 self._memory_manager.get_shared_memory_name(self._next_job.get_subspace_data()),
+                                                 j_id,
+                                                 data.dtype,
+                                                 data.shape)
 
-            try:
-                self._l_q_in.put(item=self._next_local_job, timeout=self._q_timeout)
+                result = self._pool.apply_async(_process_execution, (self._next_local_job,))
+                self._async_results.append(result)
                 self._next_job = None
-            except Exception:
-                # currently cannot enter another job
-                break
 
     def _export_finished(self):
-        # escapes loop as soon as an exeption is thrown
+        finished = [r for r in self._async_results if r.ready()]
+        if len(finished) == 0:
+            return
+
         while not self._stop_stage.is_set():
+
             if self._next_result is None:
-                try:
-                    self._next_local_job = self._l_q_out.get(timeout=self._q_timeout)
-                    if self._next_local_job.e is None:
-                        job = self._job_dict[self._next_local_job.j_id]
-                        job.model = self._next_local_job.model
-                        self._next_result = Result(job)
-                    else:
-                        self._next_result = Result(
-                            self._job_dict[self._next_local_job.j_id],
-                            self._next_local_job.e,
-                        )
-                except Exception:
-                    # No finished Job available
+
+                if len(finished) == 0:
                     break
+
+                ares = finished.pop()
+                self._async_results.remove(ares)
+
+                self._next_local_result: _LocalResult = ares.get()
+
+                if self._next_local_result.e is None:
+                    job = self._job_dict[self._next_local_result.j_id]
+                    job.set_outlier_scores(self._next_local_result.model_scores)
+                    self._next_result = Result(job)
+                else:
+                    self._next_result = Result(self._job_dict[self._next_local_result.j_id], self._next_local_result.e)
 
             try:
                 self._out_q.put(item=self._next_result, timeout=self._q_timeout)
                 self._next_result = None
-                data = self._job_dict[self._next_local_job.j_id].get_subspace_data()
-                self._manager.unregister_subspace(data)
-                del self._job_dict[self._next_local_job]
+                data = self._job_dict[self._next_local_result.j_id].get_subspace_data()
+                self._memory_manager.unregister_subspace(data)
+                del self._job_dict[self._next_local_result.j_id]
             except Exception:
                 # cannot export Result
                 break
 
 
-class _Local_Job:
-    """simple record class holding job information for processes"""
+class _LocalJob:
+    """simple record class holding job information for processes
+    """
 
-    def __init__(
-        self,
-        model: pyod.models.base.BaseDetector,
-        shm_name: str,
-        j_id: int,
-        dtype: np.dtype,
-        data_shape: np.shape,
-    ):
+    def __init__(self, model: pyod.models.base.BaseDetector, shm_name: str, j_id: int, dtype: np.dtype, data_shape: np.shape):
         self.model: pyod.models.BaseDetector = model
         self.shm_name: str = shm_name
         self.j_id: int = j_id
         self.dtype: np.dtype = dtype
         self.data_shape: np.shape = data_shape
-        self.e: Optional[Exception] = None
 
 
-def _process_execution(l_q_in: Queue[_Local_Job], l_q_out: Queue[_Local_Job]):
-    # optimization idea: check if the given shm was already loaded in previous job and reuse it
-    while True:
-        shm: Optional[SharedMemory] = None
-        loc_job = l_q_in.get()
-        # Extra catch for shm. If shm was created it should be closed at the end.
+class _LocalResult:
+
+    def __init__(self, model_scores: np.array, e: Exception, j_id: int):
+        self.model_scores = model_scores
+        self.e = e
+        self.j_id = j_id
+
+
+def _process_execution(loc_job: _LocalJob):
+    shm: Optional[SharedMemory] = None
+
+    error: Optional[Exception] = None
+    # Extra catch for shm. If shm was created it should be closed at the end.
+    try:
+        shm = SharedMemory(loc_job.shm_name)
+    except Exception as e:
+        error = e
+
+    if shm is not None:
         try:
-            shm = SharedMemory(loc_job.shm_name)
+            data: np.ndarray = np.ndarray(shape=loc_job.data_shape, dtype=loc_job.dtype, buffer=shm.buf)
+            loc_job.model.fit(data)
+
         except Exception as e:
-            loc_job.e = e
+            error = e
 
-        if shm is not None:
-            try:
-                data: np.ndarray = np.ndarray(
-                    shape=loc_job.data_shape, dtype=loc_job.dtype, buffer=shm.buf
-                )
-                loc_job.model.fit(data)
+        shm.close()
 
-            except Exception as e:
-                loc_job.e = e
+        if error is None:
+            loc_res = _LocalResult(loc_job.model.decision_scores_, error, loc_job.j_id)
+        else:
+            # decision scores are not available in case of errors
+            loc_res = _LocalResult(None, error, loc_job.j_id)
 
-            shm.close()
+    else:
+        loc_res = _LocalResult(None, error, loc_job.j_id)
 
-        l_q_out.put(loc_job)
+    return loc_res
 
 
 class _MemoryManager:
@@ -216,14 +215,13 @@ class _MemoryManager:
         else:
             return shm.name
 
-    def _get_shared_memory(self, data: np.ndarray) -> SharedMemory:
-        list: list[tuple[np.ndarray, SharedMemory]] = [
-            item for item in self._memory_mapping if item[0] is data
-        ]
-        if len(list) == 0:
+    def _get_shared_memory(self, data: np.ndarray) -> str:
+        list_: list[tuple[np.ndarray, SharedMemory]] = [item for item in self._memory_mapping if item[0] is data]
+
+        if len(list_) == 0:
             return None
         else:
-            return list[0][1]
+            return list_[0][1]
 
     def _create_shared_memory(self, data: np.ndarray) -> SharedMemory:
         """Creates a shared memory segment for the given subspace data and copies the the Subspace data into shared memory
