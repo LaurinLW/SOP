@@ -5,7 +5,8 @@ from typing import Optional
 
 
 class Job:
-    """Bundles a model and a subspace for execution
+    """Bundles a model and a subspace for execution. The model may not be trained even after the run stage.
+    The scores should be available through get_outlier_scores though. (if no error occured in execution)
     """
 
     def __init__(self, subspace: subspace.Subspace, model: pyod.models.base.BaseDetector) -> None:
@@ -17,6 +18,7 @@ class Job:
         """
         self._subspace = subspace
         self.model = model
+        self._outlier_scores: np.ndarray = None
 
     def get_outlier_scores(self) -> Optional[np.ndarray]:
         """returns outlier scores of model training data (subspace data)
@@ -27,7 +29,7 @@ class Job:
         try:
             return self.model.decision_scores_
         except Exception:
-            return None
+            return self._outlier_scores
 
     def get_subspace_dimensions(self) -> list[str]:
         return self._subspace.dimensions
@@ -40,3 +42,6 @@ class Job:
 
     def get_indexes_after_clean(self) -> np.ndarray:
         return self._subspace.indexes_after_clean
+
+    def set_outlier_scores(self, scores: np.ndarray) -> None:
+        self._outlier_scores = scores
