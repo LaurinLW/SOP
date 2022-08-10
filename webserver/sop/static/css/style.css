@@ -250,7 +250,8 @@ body {
 
 #delete_algo_dataset,
 #promote,
-#degrade {
+#degrade,
+#create_button {
     text-align: center;
     border-radius: 15px;
     color: #D6EBE4;
@@ -295,7 +296,8 @@ body {
 #delete_algo_dataset:hover,
 #promote:hover,
 #degrade:hover,
-#upload_algorithm_button:hover {
+#upload_algorithm_button:hover,
+#create_button:hover {
     border: 1px solid #D6EBE4;
 }
 
@@ -366,6 +368,7 @@ body {
     width: 0%;
     height: 100%;
     background-color: #329A79;
+    font-size: 100%;
     text-align: center;
     border-radius: 25px;
 }

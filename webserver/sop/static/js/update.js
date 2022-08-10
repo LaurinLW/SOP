@@ -6,25 +6,30 @@ document.addEventListener("DOMContentLoaded", function (event) {
         var progress = document.getElementById("progress");
         var status = document.getElementById("status");
         var i = 0;
-        setInterval(function () {
-            response = fetch(window.location.href, {
-                method: "GET", headers: {
-                    "X-Requested-With": "XMLHttpRequest",
+        if (progress != null) {
+            var interval = setInterval(function () {
+                response = fetch(window.location.href, {
+                    method: "GET", headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        var interval = setInterval(function () {
+                            if (i < data["update_progress"]) {
+                                i++;
+                                progress.style.width = i + "%";
+                                progress.innerHTML = i + "%";
+                            } else {
+                                clearInterval(interval);
+                            }
+                        }, 20);
+                        status.innerHTML = "Status: " + data["update_status"];
+                    });
+                if (i == 100) {
+                    clearInterval(interval)
                 }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    var interval = setInterval(function () {
-                        if (i < data["update_progress"]) {
-                            i++;
-                            progress.style.width = i + "%";
-                            progress.innerHTML = i + "%";
-                        } else {
-                            clearInterval(interval);
-                        }
-                    }, 20);
-                    status.innerHTML = "Status: " + data["update_status"];
-                });
-        }, 2000);
+            }, 2000);
+        }
     }
 });

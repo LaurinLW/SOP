@@ -76,11 +76,15 @@ class AlgorithmUploadView(View, LoginRequiredMixin):
                                 elif parameters.defaults[i - 1] is None:
                                     algoPara += (f"\"{parameters.args[i]}\": null,\n")
                                 else:
-                                    algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
+                                    default = str(parameters.defaults[i - 1]).split(" at ")[0]
+                                    if default != str(parameters.defaults[i - 1]):
+                                        algoPara += (f"\"{parameters.args[i]}\": \"{default}>\",\n")
+                                    else:
+                                        algoPara += (f"\"{parameters.args[i]}\": \"{parameters.defaults[i-1]}\",\n")
                             algoPara = algoPara[:-2]
                             algoPara += "}"
                             algo.parameters = algoPara
-                            algo.modul_name = basename.replace(".py", "")
+                            algo.modul_name = algo.name
                             algo.class_name = class_name
                 except:
                     messages.warning(request, "An error has occured when trying to extract parameters out of the provided python algorithm code!")
