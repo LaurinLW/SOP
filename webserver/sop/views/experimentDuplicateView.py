@@ -26,7 +26,7 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
         experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
         version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
         possible_algorithms = AlgorithmModel.objects.all().filter(creator_id=request.user.id)  # own algorithms
-        pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None)  # pyod algorithms
+        pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None).order_by("name").values()  # pyod algorithms
         possible_datasets = DatasetModel.objects.all().filter(creator_id=request.user.id)  # own datasets
         algorithms = (possible_algorithms | pyod_algorithms)
         if version.parameterSettings != "":
