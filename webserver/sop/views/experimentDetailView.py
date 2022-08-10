@@ -21,7 +21,7 @@ class ExperimentDetailView(View, LoginRequiredMixin):
         """
         experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
         version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
-        versions = VersionModel.objects.all().filter(experiment_id=experiment.id)
+        versions = VersionModel.objects.all().filter(experiment_id=experiment.id).order_by("edits").order_by("runs").values()
         if experiment.creator == request.user and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
             return render(request, self.template_name, {"Experiment": experiment, "Version": version, "Versions": versions})
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':
