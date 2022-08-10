@@ -26,9 +26,12 @@ class InputHandler():
                     except ValueError:
                         messages.warning(request, "Your " + input + " needs to be a integer")
                         value = False
-        if request.POST.get("minDimension", 0) > request.POST.get("maxDimension", 0):
-            messages.warning(request, "Your min dimension can not be bigger than the max dimension")
-            value = False
+        try:
+            if int(request.POST.get("minDimension", 0)) > int(request.POST.get("maxDimension", 1)):
+                messages.warning(request, "Your min dimension can not be bigger than the max dimension")
+                value = False
+        except:
+            pass
         try:
             if int(request.POST.get("repetitions")) > 100:
                 messages.warning(request, "The repetitions are maxed at 100")

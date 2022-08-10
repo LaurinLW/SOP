@@ -13,10 +13,12 @@ document.addEventListener("DOMContentLoaded", function (event) {
             for (i = 0; i < searchable.length; i++) {
                 if (searchable[i].tagName != "TR" && searchable[i].value.toLowerCase().includes(search_var)) {
                     searchable[i].style.display = "block";
-                } else if (searchable[i].id.toLowerCase().includes(search_var)){
+                } else if (searchable[i].id.toLowerCase().includes(search_var)) {
                     searchable[i].style.display = "table-row";
                 } else {
+                    if (searchable[i].tagName != "TR") searchable[i].nextElementSibling.style.display = "none";
                     searchable[i].style.display = "none";
+
                 }
             }
         });

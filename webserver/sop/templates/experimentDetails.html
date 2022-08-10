@@ -3,9 +3,11 @@
 
 {% block content %}
 <h2 id="title"> Details of {{Experiment.name}} </h2>
-<div class="progressbar">
-    <div class="realbar" id="progress">0%</div>
-</div>
+<nobr>
+    <div class="progressbar">
+        <div class="realbar" id="progress">0%</div>
+    </div>
+</nobr>
 
 <div id="info_left">
     <p> Status: {{Version.status}} </p>
