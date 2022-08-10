@@ -117,6 +117,12 @@ def stop_f():
         c.kill()
         c.remove()
 
+def iterate_f():
+    client = docker.from_env()
+    client.images.build(path=".", dockerfile="Dockerfile_web", tag="sop-web")
+    stop_f()
+    start_f()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script used to setup the sop project")
@@ -133,6 +139,7 @@ if __name__ == "__main__":
     )
     start = subparsers.add_parser("start", help="start the software")
     stop = subparsers.add_parser("stop", help="stop the project")
+    iterate = subparsers.add_parser("iterate", help="command for fast debugging")
 
     args = parser.parse_args()
 
@@ -156,6 +163,8 @@ if __name__ == "__main__":
         start_f()
     elif args.command == "stop":
         stop_f()
+    elif args.command == "iterate":
+        iterate_f()
     else:
         print("Unknown command")
         parser.print_help()

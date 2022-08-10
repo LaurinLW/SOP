@@ -60,7 +60,7 @@ class SubspaceGenerator:
                 self.__cleanedData.iloc[:, subspace_dimensions]
             )
             subspace_dimensions_names: str = list(subspace_encoded.columns)
-            subspace_array: np.ndarray = subspace_encoded.to_numpy(dtype=np.uint32)
+            subspace_array: np.ndarray = subspace_encoded.to_numpy()
             self.__quantity_created_subspaces += 1
             return Subspace(subspace_array, subspace_dimensions_names, subspace_index)
         raise StopIteration

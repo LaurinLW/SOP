@@ -47,7 +47,8 @@ class ProgressControl:
 
         if self._subspace_runs[key] == self._num_models:
             ex_file = self._exporter.finalize_single(subspace_dim)
-            self._server.send_result(ex_file)
+            if ex_file is not None:
+                self._server.send_result(ex_file)
             self._complete_subspaces += 1
             del self._subspace_runs[key]
 
