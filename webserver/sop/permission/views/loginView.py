@@ -38,7 +38,5 @@ class LoginView(View):
             if user is not None:
                 login(request, user)
                 return redirect("/home")
-            else:
-                messages.error(request, "Invalid username or password")
-        form = self.form_class()
-        return render(request, self.template_name, {"login_form": form})
+        messages.warning(request, "Invalid username or password")
+        return redirect("/login")

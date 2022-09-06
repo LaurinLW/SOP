@@ -23,15 +23,21 @@ class ExperimentIterateView(View, LoginRequiredMixin):
         if experiment.creator == request.user:
             if version.error is None:
                 maxVersion = VersionModel.objects.all().filter(experiment_id=experiment.id).filter(edits=kwargs.get("edits")).aggregate(Max('runs'))
-                newVersion = version
-                newVersion.pk = None
+                newVersion = VersionModel()
+                newVersion.minDimension = version.minDimension
+                newVersion.maxDimension = version.maxDimension
+                newVersion.numberSubspaces = version.numberSubspaces
+                newVersion.parameterSettings = version.parameterSettings
                 newVersion.experiment = experiment
+                newVersion.edits = version.edits
                 newVersion.status = "paused"
                 newVersion.progress = 0
-                newVersion.pid = None
                 newVersion.runs = maxVersion.get("runs__max") + 1
                 maxSeed = VersionModel.objects.all().filter(experiment_id=experiment.id).filter(edits=kwargs.get("edits")).aggregate(Max('seed'))
                 newVersion.seed = maxSeed.get("seed__max") + 1
+                newVersion.save()
+                for algo in version.algorithms.all():
+                    newVersion.algorithms.add(algo)
                 newVersion.save()
                 experiment.latestVersion = str(newVersion.edits) + "." + str(newVersion.runs)
                 experiment.latestStatus = "paused"

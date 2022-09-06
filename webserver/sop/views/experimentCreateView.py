@@ -50,7 +50,11 @@ class ExperimentCreateView(LoginRequiredMixin, View):
             version_form = VersionForm(request.POST)
             if experiment_form.is_valid() and version_form.is_valid():
                 experiment_form.creator = request.user
-                experiment_form.dataset = DatasetModel.objects.get(pk=request.POST["dataset"])
+                try:
+                    experiment_form.dataset = DatasetModel.objects.get(pk=request.POST["dataset"])
+                except ValueError:
+                    messages.warning(request, "You need to select a dataset")
+                    return redirect("/newExperiment")
                 exp = experiment_form.save()
                 version_form.experiment = exp
                 ver = version_form.save()

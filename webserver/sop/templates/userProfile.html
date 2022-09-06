@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <form method="POST">
-
+    {% csrf_token %}
     <button id="upload_algorithm" type="button" onclick="location.href='/uploadAlgorithm'">
         <p style="font-size: large;">upload new Algorithm</p>
     </button>
@@ -16,7 +16,6 @@
     <div id="email">
         <p>email: {{email}}</p>
     </div>
-    {% csrf_token %}
     <div id="algo_table">
         <table class="algo_table">
             <thead>
@@ -31,7 +30,8 @@
                 <tr>
                     <td>{{ algo.name }}</td>
                     <td>{{ algo.category }}</td>
-                    <td><button type="submit" name="delete_algorithm" value="{{algo.id}}" id="delete_algo_dataset">delete</button></td>
+                    <td><button type="submit" name="delete_algorithm" value="{{algo.id}}"
+                            id="delete_algo_dataset">delete</button></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -69,7 +69,8 @@
                 {% for data in datas %}
                 <tr>
                     <td>{{ data.name }}</td>
-                    <td> <button type="submit" name="delete_dataset" value="{{data.id}}" id="delete_algo_dataset">delete</button></td>
+                    <td> <button type="submit" name="delete_dataset" value="{{data.id}}"
+                            id="delete_algo_dataset">delete</button></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -104,5 +105,7 @@
         </ul>
         {% endif %}
     </div>
+    {% block admin %}
+    {% endblock %}
 </form>
 {% endblock %}

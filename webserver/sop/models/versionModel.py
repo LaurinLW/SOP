@@ -88,8 +88,8 @@ class VersionModel(models.Model):
 
     def remove_container(self):
         # remove container with working directory
-        client = docker.from_env()
         try:
+            client = docker.from_env()
             container = client.containers.get(self.pid)
             container.kill()
         except:

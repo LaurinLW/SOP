@@ -251,7 +251,8 @@ body {
 #delete_algo_dataset,
 #promote,
 #degrade,
-#create_button {
+#create_button,
+#select_button {
     text-align: center;
     border-radius: 15px;
     color: #D6EBE4;
@@ -270,12 +271,12 @@ body {
     height: 12%;
 }
 
-#select_file{
+#select_file {
     font-size: x-large;
     text-align: center;
 }
 
-#category{
+#category {
     font-size: x-large;
     text-align: center;
 }
@@ -297,7 +298,8 @@ body {
 #promote:hover,
 #degrade:hover,
 #upload_algorithm_button:hover,
-#create_button:hover {
+#create_button:hover,
+#select_button:hover {
     border: 1px solid #D6EBE4;
 }
 
@@ -417,4 +419,26 @@ body {
 
 .active:after {
     content: "\2BC6";
+}
+
+.loader {
+    position: absolute;
+    top: 40%;
+    left: 47vw;
+    border: 1vw solid #D6EBE4;
+    border-top: 1vw solid #181818;
+    border-radius: 50%;
+    width: 5vw;
+    height: 5vw;
+    animation: spin 2s linear infinite;
+    display: none;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

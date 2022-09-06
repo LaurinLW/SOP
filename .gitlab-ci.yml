@@ -1,11 +1,19 @@
 stages:
   - test
   - deploy
-
+  
 test:
   image: python:3.10-slim
   stage: test
+  services:
+    - docker:20.10.16-dind
   before_script:
+    - apt update
+    - apt install -y curl
+    - curl https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_105.0.5195.52-1_amd64.deb --output chrome.deb
+    - apt install -y ./chrome.deb
+    - curl https://download.docker.com/linux/debian/dists/bullseye/pool/stable/amd64/docker-ce-cli_20.10.16~3-0~debian-bullseye_amd64.deb --output docker.deb
+    - apt install -y ./docker.deb
     - pip install flake8
     - pip install -r requirements.txt
   script:
