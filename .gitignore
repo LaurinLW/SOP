@@ -8,6 +8,7 @@ user_datasets/
 experimente/
 .vscode/
 experiment_tests/export/
+.coverage
 
 env
 

@@ -11,12 +11,16 @@
     text-align: center;
 }
 
+.error_div {
+    color: red;
+}
+
 body {
     background-color: #1F1F1F;
 }
 
 .no_link_highlight {
-    text-decoration: none;
+    text-decoration: underline;
     color: #DCFFFF;
 }
 
@@ -31,11 +35,12 @@ body {
     height: 12%;
 }
 
-.login_button:hover{
+.login_button:hover {
     border: 1px solid #D6EBE4;
 }
 
-#username, #password{
+#username,
+#password {
     font-size: x-large;
     border-radius: 15px;
 }

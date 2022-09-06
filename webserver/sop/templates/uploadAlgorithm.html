@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
 {% block content %}
+<script type="text/JavaScript" src="{% static '../static/js/upload.js' %}"></script>
 <div id="upload_algo_dataset_div">
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -30,4 +32,5 @@
         {% endif %}
     </form>
 </div>
+<div class="loader"></div>
 {% endblock %}

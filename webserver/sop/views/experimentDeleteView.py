@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.views import View
 from sop.models import ExperimentModel
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ExperimentDeleteView(View, LoginRequiredMixin):
@@ -13,7 +14,11 @@ class ExperimentDeleteView(View, LoginRequiredMixin):
         Returns:
             HttpResponseRedirect: Return an HttpResponseRedirect to the Home-View
         """
-        experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+        try:
+            experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+        except ObjectDoesNotExist:
+            return redirect("/home")
         if experiment.creator == request.user:
             experiment.delete()
+            return redirect("/home")
         return redirect("/")

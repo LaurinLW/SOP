@@ -27,7 +27,7 @@ class ExperimentEditView(LoginRequiredMixin, View):
         possible_algorithms = AlgorithmModel.objects.all().filter(creator_id=request.user.id)  # own algorithms
         pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None).order_by("name").values()  # pyod algorithms
         algorithms = (possible_algorithms | pyod_algorithms)
-        if version.parameterSettings != "":
+        if version.parameterSettings != "" and version.parameterSettings is not None:
             selected_data = json.loads(version.parameterSettings)
         else:
             selected_data = None

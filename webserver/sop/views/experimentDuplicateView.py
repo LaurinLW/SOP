@@ -29,7 +29,7 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
         pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None).order_by("name").values()  # pyod algorithms
         possible_datasets = DatasetModel.objects.all().filter(creator_id=request.user.id)  # own datasets
         algorithms = (possible_algorithms | pyod_algorithms)
-        if version.parameterSettings != "":
+        if version.parameterSettings != "" and version.parameterSettings is not None:
             selected_data = json.loads(version.parameterSettings)
         else:
             selected_data = None
@@ -56,7 +56,7 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
         if InputHandler().checkInput(request):
             newExperiment = experiment
             newExperiment.pk = None
-            newExperiment.dataset = DatasetModel.objects.get(pk=request.POST.get("dataset", experiment.dataset))
+            newExperiment.dataset = DatasetModel.objects.get(pk=request.POST.get("dataset", experiment.dataset.id))
             newExperiment.name = request.POST.get("name", experiment.name)
             newExperiment.latestVersion = "1.0"
             newExperiment.latestStatus = "paused"
@@ -70,11 +70,11 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
             newVersion.pid = None
             newVersion.progress = 0
             newVersion.experiment = newExperiment
-            newVersion.seed = request.POST.get("seed", newVersion.seed)
-            newVersion.minDimension = request.POST.get("minDimension", newVersion.minDimension)
-            newVersion.maxDimension = request.POST.get("maxDimension", newVersion.maxDimension)
-            newVersion.numberSubspaces = request.POST.get("numberSubspaces", newVersion.numberSubspaces)
-            newVersion.numberSubspaces = request.POST.get("numberSubspaces", newVersion.numberSubspaces)
+            newVersion.seed = int(request.POST.get("seed", newVersion.seed))
+            newVersion.minDimension = int(request.POST.get("minDimension", newVersion.minDimension))
+            newVersion.maxDimension = int(request.POST.get("maxDimension", newVersion.maxDimension))
+            newVersion.numberSubspaces = int(request.POST.get("numberSubspaces", newVersion.numberSubspaces))
+            newVersion.numberSubspaces = int(request.POST.get("numberSubspaces", newVersion.numberSubspaces))
             newVersion.save()
             parameters = ParameterHandler().getFullJsonString(request, newVersion)
             if type(parameters) != str:
@@ -83,5 +83,13 @@ class ExperimentDuplicateView(LoginRequiredMixin, View):
                 return redirect(f'/duplicate/{kwargs.get("detail_id")}/{kwargs.get("edits")}.{kwargs.get("runs")}')
             newVersion.parameterSettings = parameters
             newVersion.save()
+            reps = int(request.POST.get("repetitions", 1)) - 1
+            for a in range(reps):
+                newVersion.pk = None
+                newVersion.runs += 1
+                newVersion.seed += 1
+                newVersion.save()
+                newExperiment.latestVersion = str(newVersion.edits) + "." + str(newVersion.runs)
+                newExperiment.save()
             return redirect("/details/" + str(newExperiment.id) + "/" + newExperiment.latestVersion)
         return redirect("/duplicate/" + str(experiment.id) + "/" + kwargs.get("edits") + "." + kwargs.get("runs"))

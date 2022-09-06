@@ -31,7 +31,7 @@ body {
 }
 
 .no_link_highlight {
-    text-decoration: none;
+    text-decoration: underline;
     color: #DCFFFF;
 }
 

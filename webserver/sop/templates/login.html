@@ -13,6 +13,13 @@
       <input type="password" id="password" name="password"><br><br>
       <button class="login_button" type="submit">Login</button>
     </form>
+    {% if messages %}
+    <div class="error_div">
+      {% for m in messages %}
+      <p>{{m}}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
     <p class="text-center">Don't have an account? <a class="no_link_highlight" href="register">Click here to
         register</a>.</p>
   </div>

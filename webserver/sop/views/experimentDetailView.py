@@ -5,6 +5,7 @@ from sop.models.versionModel import VersionModel
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class ExperimentDetailView(View, LoginRequiredMixin):
@@ -19,9 +20,12 @@ class ExperimentDetailView(View, LoginRequiredMixin):
             HttpResponse: Return an HttpResponse whose content is filled with
             the result of calling django.shortcuts.render with the passed arguments
         """
-        experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
-        version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
-        versions = VersionModel.objects.all().filter(experiment_id=experiment.id).order_by("edits").order_by("runs").values()
+        try:
+            experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+            version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+            versions = VersionModel.objects.all().filter(experiment_id=experiment.id).order_by("edits").order_by("runs").values()
+        except ObjectDoesNotExist:
+            return redirect("/home")
         if experiment.creator == request.user and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
             return render(request, self.template_name, {"Experiment": experiment, "Version": version, "Versions": versions})
         elif request.headers.get('X-Requested-With') == 'XMLHttpRequest':

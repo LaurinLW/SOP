@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
-from ...forms.newUserForm import NewUserForm
+from sop.forms.newUserForm import NewUserForm
 from django.contrib.auth import login
 from django.contrib import messages
 from django.views import View
+from django.contrib.auth.models import User
+import json
 
 
 class RegisterView(View):
@@ -32,9 +34,14 @@ class RegisterView(View):
         """
         form = NewUserForm(request.POST)
         if form.is_valid():
+            if User.objects.all().filter(username=request.POST.get("username")).count() > 0:
+                messages.error(request, "This username is already taken")
+                return redirect("/register")
             user = form.save()
             login(request, user)
             return redirect("/home")
-        messages.error(request, "Invalid information")
+        error_json = json.loads(form.errors.as_json())
+        for error in error_json:
+            messages.error(request, error_json[error][0]["message"])
         form = self.form_class()
         return render(request, self.template_name, {'register_form': form})
