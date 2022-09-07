@@ -11,7 +11,6 @@ from pyod.models.abod import ABOD
 from pyod.models.kde import KDE
 from pyod.models.sod import SOD
 from experiment.supply.subspace.subspace import Subspace
-from experiment.run.result import Result
 import time
 import pandas as pd
 import numpy as np
@@ -23,7 +22,7 @@ import timeout_decorator
 
 class CSVExporterTest(unittest.TestCase):
 
-    timeout = 10
+    timeout = 30
 
     export_dir = "export"
     export_path = ""
@@ -31,7 +30,6 @@ class CSVExporterTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         test_dir = (os.path.sep).join((__file__.split(".")[0]).split(os.path.sep)[0:-1])
-        print(test_dir)
         cls.export_path = os.path.join(test_dir, cls.export_dir)
         if not os.path.exists(cls.export_path):
             os.mkdir(cls.export_path)
@@ -41,10 +39,12 @@ class CSVExporterTest(unittest.TestCase):
                 os.remove(os.path.join(cls.export_path, f))
 
     def setUp(self):
+        self.verifier = _ExportVerifier()
         self.in_q = Queue()
         self.stop_stage = threading.Event()
         self.export_path = CSVExporterTest.export_path
-        self.exporter = CSVExporter(MockProgressControl(), self.in_q, self.stop_stage, self.export_path)
+        self.progresscontrol = MockProgressControl()
+        self.exporter = CSVExporter(self.progresscontrol, self.in_q, self.stop_stage, self.export_path)
         self.data = list()
         self.models = [SOD, ABOD, KDE]
         self.num_subspaces = 3
@@ -78,35 +78,29 @@ class CSVExporterTest(unittest.TestCase):
     def test_single_result(self):
         self.in_q.put(self.results[0])
         # to make sure data is handled, in real used finalize is only called after all results are handled
-        time.sleep(1)
-        self.exporter.finalize()
-        df = pd.read_csv(os.path.join(CSVExporterTest.export_path, "subspace_result0.csv"), dtype=np.float64)
-        df_arr = df.to_numpy(dtype=np.float64)
-        # even though the values are only read pandas introduces small changes to values
-        self.assertTrue(np.allclose(df_arr[:, 1:-1], self.data[0]))
-        self.assertTrue(np.allclose(df_arr[:, -1], self.fitted_models[0].decision_scores_))
+        # time.sleep(1)
+        self.progresscontrol.wait(1)
 
-    @unittest.skip
+        self.exporter.finalize()
+
+        self.verifier.load(self.export_path)
+
+        self.assertTrue(self.verifier.verify_job(self.results[0].unpack()))
+
     @timeout_decorator.timeout(timeout)
     def test_multiple_results(self):
         for r in self.results:
             self.in_q.put(r)
 
-        time.sleep(2)
+        self.progresscontrol.wait(len(self.results))
+
         self.exporter.finalize()
 
-        for i, data in enumerate(self.data):
-            df: pd.DataFrame = pd.read_csv(os.path.join(CSVExporterTest.export_path, f"subspace_result{i}.csv"), dtype=np.float64)
-            df_arr = df.to_numpy(dtype=np.float64)
-            columns: int = data.shape[1]
-            # check input data
-            # first column contains indices
-            self.assertTrue(np.allclose(df_arr[:, 1:columns + 1], data))
-            # check scores
-            for j in range(len(self.models)):
-                df_scores = df[str(self.fitted_models[i * len(self.models) + j])]
-                m_scores = self.fitted_models[i * len(self.models) + j].decision_scores_
-                self.assertTrue(np.allclose(df_scores, m_scores))
+        self.verifier.load(self.export_path)
+
+        for r in self.results:
+            if not self.verifier.verify_job(r.unpack()):
+                self.fail("verification failed")
 
     @timeout_decorator.timeout(timeout)
     def test_no_result(self):
@@ -114,28 +108,55 @@ class CSVExporterTest(unittest.TestCase):
         self.stop_stage.set()
         self.exporter.join()
 
-    @unittest.skip
     @timeout_decorator.timeout(timeout)
     def test_finalize_single(self):
         for r in self.results:
             self.in_q.put(r)
 
-        time.sleep(2)
+        self.progresscontrol.wait(len(self.results))
 
         self.exporter.finalize_single(self.results[0].unpack().get_subspace_dimensions())
 
-        data = self.data[0]
-        df: pd.DataFrame = pd.read_csv(os.path.join(CSVExporterTest.export_path, "subspace_result0.csv"), dtype=np.float64)
-        df_arr = df.to_numpy(dtype=np.float64)
-        columns: int = data.shape[1]
-        # check input data
-        # first column contains indices
-        self.assertTrue(np.allclose(df_arr[:, 1:columns + 1], data))
-        # check scores
-        for j in range(len(self.models)):
-            df_scores = df[str(self.fitted_models[j])]
-            m_scores = self.fitted_models[j].decision_scores_
-            self.assertTrue(np.allclose(df_scores, m_scores))
+        self.verifier.load(self.export_path)
+
+        self.assertTrue(self.verifier.verify_job(self.results[0].unpack()))
+
+    @timeout_decorator.timeout(timeout)
+    def test_export_failed_job(self):
+        base_job = self.results[0].unpack()
+        failed_job_model = Result(base_job, e=Exception("arbitrary runtime exception"))
+        failed_job_no_model = Result(Job(Subspace(base_job.get_subspace_data(),
+                                                  base_job.get_subspace_dimensions(),
+                                                  base_job.get_indexes_after_clean()), None))
+
+        self.in_q.put(failed_job_model)
+        self.in_q.put(failed_job_no_model)
+
+        for r in self.results:
+            self.in_q.put(r)
+
+        self.progresscontrol.wait(len(self.results) + 2)
+
+        self.exporter.finalize()
+
+        self.verifier.load(self.export_path)
+        for r in self.results:
+            if not self.verifier.verify_job(r.unpack()):
+                self.fail("failed verification")
+
+    def test_finalize_single_non_existing(self):
+        for r in self.results:
+            self.in_q.put(r)
+
+        self.progresscontrol.wait(len(self.results))
+
+        self.exporter.finalize_single(["does", "not", "exist", "46290"])
+        self.exporter.finalize()
+        self.verifier.load(self.export_path)
+
+        for r in self.results:
+            if not self.verifier.verify_job(r.unpack()):
+                self.fail("failed verification")
 
 
 def delete_directory_contents(path):
@@ -144,16 +165,78 @@ def delete_directory_contents(path):
         os.remove(os.path.join(path, f))
 
 
-class MockProgressControl:
+class _ExportVerifier:
+
+    def load(self, path: str):
+        """Loads all export files into memory
+
+        Args:
+            path (str): path to export directory
+        """
+        self._dataframes: list[pd.DataFrame] = list()
+
+        for f in os.listdir(path):
+            file_path = os.path.join(path, f)
+            self._dataframes.append(pd.read_csv(file_path))
+
+    def verify_job(self, job: Job) -> bool:
+        """Verifies that the outlierscores of the given job are in the export files(in the file with the corressponding subspace).
+        Only works for jobs having a model.
+
+        Args:
+            job (Job): job that gets verified
+
+        Returns:
+            bool: true if the jobs outlierscores are in the exports, false else
+        """
+        df: pd.DataFrame = self._find_dataframe(job.get_subspace_data())
+        if df is None:
+            return False
+
+        return np.allclose(df[str(job.model)].to_numpy(), job.get_outlier_scores(), equal_nan=True)
+
+    def _find_dataframe(self, subspace: np.ndarray) -> pd.DataFrame:
+        """Finds fitting dataframe for given subspace data
+
+        Args:
+            subspace (np.ndarray): subspace data
+
+        Returns:
+            pd.DataFrame: A fitting Dataframe, None if there is no fitting Dataframe
+        """
+        columns = subspace.shape[1]
+
+        for df in self._dataframes:
+            if len(df.columns) < columns:
+                continue
+
+            # first column is indices
+            df_sp = df.iloc[:, 1:columns + 1].to_numpy(dtype=subspace.dtype)
+            if np.allclose(subspace, df_sp, equal_nan=True):
+                return df
+
+        return None
+
+
+class MockProgressControl(ProgressControl):
     # A ProgressControl for testing. Does not require Server
     def __init__(self):
-        pass
+        self.count = 0
 
-    def update(self, model: str, subspace_dim: list[str]) -> None:
-        pass
+    def update(self, subspace_dim: list[str]) -> None:
+        self.count += 1
 
-    def update_error(self, model: str, subspace_dim: list[str], error: Exception) -> None:
-        pass
+    def update_error(self, subspace_dim: list[str], error: Exception) -> None:
+        self.count += 1
 
     def register(self, exporter: Exporter):
         pass
+
+    def wait(self, num_jobs: int):
+        """Help function. Returns as soon as the MockProgressControl is notified num_jobs jobs
+
+        Args:
+            num_jobs (int): number of jobs waiting for notifying
+        """
+        while(self.count < num_jobs):
+            time.sleep(0.1)
