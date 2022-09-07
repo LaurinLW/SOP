@@ -1,0 +1,17 @@
+FROM python:3.10-slim
+
+COPY ./requirements.txt ./requirements.txt
+
+RUN pip install -r requirements.txt
+
+RUN mkdir /experiment
+
+WORKDIR /experiment
+
+COPY ./ ./
+
+
+ENV PYTHONPATH "${PYTHONPATH}:/"
+ENV PYTHONPATH "${PYTHONPATH}:/experimentconfig/algorithms/useralgorithms"
+
+ENTRYPOINT ["/bin/bash"]

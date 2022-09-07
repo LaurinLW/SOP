@@ -29,11 +29,10 @@ class ProgressControl:
         self._exporter: Optional[ex.Exporter]
         self._complete_subspaces = 0
 
-    def update(self, model: str, subspace_dim: list[str]) -> None:
+    def update(self, subspace_dim: list[str]) -> None:
         """Exporters should call this method to update the progress of the Experiment.
 
         Args:
-            model (str): model which results were exported
             subspace_dim (list[str]): dimension titles of the subspace
         """
         key: tuple[str] = tuple(subspace_dim)
@@ -60,7 +59,7 @@ class ProgressControl:
         if self._complete_subspaces == self._num_subspaces:
             self._experiment.stop()
 
-    def update_error(self, model: str, subspace_dim: list[str], error: Exception) -> None:
+    def update_error(self, subspace_dim: list[str], error: Exception) -> None:
         """Exporters should call this method to notify Progresscontrol about errors
 
         Args:
@@ -69,7 +68,7 @@ class ProgressControl:
             error (Exception): error that occured
         """
         self._server.send_error(str(error))
-        self.update(model, subspace_dim)
+        self.update(subspace_dim)
 
     def get_progress(self) -> int:
         """returns progress

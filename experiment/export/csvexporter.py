@@ -31,31 +31,28 @@ class CSVExporter(ex.Exporter):
                     next_result = self._in_q.get(timeout=self._q_timeout)
                 except Exception:
                     # could not get item, try again next iteration
-                    pass
+                    continue
 
             if next_result is not None:
                 try:
                     export_job = next_result.unpack()
                 except Exception as e:
-                    self._progress.update_error(str(next_result.job.model),
-                                                next_result.job.get_subspace_dimensions(),
+                    # TODO model may not exist in an failed job
+                    self._progress.update_error(next_result.job.get_subspace_dimensions(),
                                                 e)
+
+                    export_job = next_result.job
+                    df = self._get_dataframe(export_job)
+                    # TODO add some sort of message to csv indicating that the job failed
+
+                    next_result = None
                     continue
 
-                dim_tup = tuple(export_job.get_subspace_dimensions())
-                df: pd.DataFrame
-                try:
-                    df = self._dataframes[dim_tup]
-                except KeyError:
-                    df = pd.DataFrame(data=export_job.get_subspace_data(),
-                                      columns=export_job.get_subspace_dimensions(),
-                                      dtype=export_job.get_outlier_scores().dtype)
-                    self._dataframes[dim_tup] = df
-                    df.insert(0, "index", export_job.get_indexes_after_clean())
+                df = self._get_dataframe(export_job)
 
                 df[str(export_job.model)] = export_job.get_outlier_scores()
 
-                self._progress.update(str(export_job.model), export_job.get_subspace_dimensions())
+                self._progress.update(export_job.get_subspace_dimensions())
                 next_result = None
 
     def finalize(self):
@@ -78,3 +75,26 @@ class CSVExporter(ex.Exporter):
         self._next_export_id += 1
 
         return export_file_name
+
+    def _get_dataframe(self, export: Job, failed: bool = False) -> pd.DataFrame:
+        """Returns dataframe fitting the export job. If that dataframe does not exist it is created.
+
+        Args:
+            export (Job): job that will be exported
+            failed (bool): should be true if the job failed (result has an exception)
+
+        Returns:
+            pd.DataFrame: the fitting dataframe for the job. Is created if it does not already exist.
+        """
+
+        dim_tup = tuple(export.get_subspace_dimensions())
+        df: pd.DataFrame
+        try:
+            df = self._dataframes[dim_tup]
+        except KeyError:
+            df = pd.DataFrame(data=export.get_subspace_data(),
+                              columns=export.get_subspace_dimensions(),)
+            self._dataframes[dim_tup] = df
+            df.insert(0, "index", export.get_indexes_after_clean())
+
+        return df

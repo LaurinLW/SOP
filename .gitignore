@@ -10,5 +10,9 @@ experimente/
 experiment_tests/export/
 .coverage
 
+#coverage.py files
+.coverage
+htmlcov
+
 env
 
