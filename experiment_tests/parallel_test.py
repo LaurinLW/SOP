@@ -13,6 +13,7 @@ import time
 import numpy as np
 import signal
 import timeout_decorator
+from experiment.run.result import Result
 
 
 class ParallelRunnerTestCase(unittest.TestCase):
@@ -31,9 +32,11 @@ class ParallelRunnerTestCase(unittest.TestCase):
             self.subspace_list.append(Subspace(data, None, np.ndarray([0, 1, 2])))
 
         for subspace in self.subspace_list:
-            self.job_list.append(Job(subspace, KNN()))
-            self.job_list.append(Job(subspace, ECOD()))
-            self.job_list.append(Job(subspace, ABOD()))
+            self.job_list.append(Job(subspace, KNN, dict()))
+            self.job_list.append(Job(subspace, ECOD, dict()))
+            self.job_list.append(Job(subspace, ABOD, dict()))
+
+        self.input_results = [Result(j) for j in self.job_list]
 
         self.in_q = Queue()
         self.out_q = Queue()
@@ -59,17 +62,54 @@ class ParallelRunnerTestCase(unittest.TestCase):
     @timeout_decorator.timeout(timeout)
     def test_single_job(self):
         self.parallel.start()
-        self.in_q.put(self.job_list[0])
+        self.in_q.put(self.input_results[0])
         # self.in_q.put(self.job_list[1])
         self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
 
     @timeout_decorator.timeout(timeout)
     def test_multiple_jobs(self):
         self.parallel.start()
-        for j in self.job_list:
+        for j in self.input_results:
             self.in_q.put(j)
 
-        for i in range(len(self.job_list)):
+        for i in range(len(self.input_results)):
+            self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
+
+    @timeout_decorator.timeout(timeout)
+    def test_failed_result(self):
+        message = "This is a test"
+        failed_result = Result(None, Exception(message))
+        self.parallel.start()
+        self.in_q.put(failed_result)
+        for j in self.input_results:
+            self.in_q.put(j)
+
+        for i in range(len(self.input_results) + 1):
+            try:
+                self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
+            except Exception as e:
+                self.assertEqual(str(e), str(Exception(message)))
+
+    @timeout_decorator.timeout(timeout)
+    def test_stop_while_executing_jobs(self):
+        self.parallel.start()
+        for j in self.input_results:
+            self.in_q.put(j)
+        self.stop.set()
+        self.parallel.join()
+
+    def test_failing_model(self):
+        failing = Result(Job(self.subspace_list[0], KNN, {"n_neighbors": self.data_shape[0] + 1}))
+        self.parallel.start()
+        self.in_q.put(failing)
+        
+        self.assertRaises(ValueError, self.out_q.get().unpack)
+
+        # test if something broke
+        for j in self.input_results:
+            self.in_q.put(j)
+
+        for i in range(len(self.input_results)):
             self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
 
 

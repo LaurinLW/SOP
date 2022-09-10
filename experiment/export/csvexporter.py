@@ -7,6 +7,7 @@ from typing import Optional
 import pandas as pd
 from experiment.run.job import Job
 import os
+import numpy as np
 
 
 class CSVExporter(ex.Exporter):
@@ -37,20 +38,28 @@ class CSVExporter(ex.Exporter):
                 try:
                     export_job = next_result.unpack()
                 except Exception as e:
-                    # TODO model may not exist in an failed job
                     self._progress.update_error(next_result.job.get_subspace_dimensions(),
                                                 e)
 
                     export_job = next_result.job
-                    df = self._get_dataframe(export_job)
-                    # TODO add some sort of message to csv indicating that the job failed
+                    df: pd.DataFrame = self._get_dataframe(export_job)
+
+                    column_head: str
+                    if not export_job.get_model_string() is None:
+                        column_head = f"ERROR:{e} {export_job}"
+                    elif export_job.get_model_class() is None:
+                        column_head = f"ERROR:{str(e)}"
+                    else:
+                        column_head = f"ERROR:{e} {export_job.get_model_class()} {export_job.get_parameters()}"
+
+                    df[column_head] = np.nan
 
                     next_result = None
                     continue
 
                 df = self._get_dataframe(export_job)
 
-                df[str(export_job.model)] = export_job.get_outlier_scores()
+                df[export_job.get_model_string()] = export_job.get_outlier_scores()
 
                 self._progress.update(export_job.get_subspace_dimensions())
                 next_result = None

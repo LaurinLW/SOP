@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from pyod.models.knn import KNN
 from pyod.models.ecod import ECOD
+from pyod.models.abod import ABOD
 from pyod.utils.data import generate_data
 from experiment.run.job import Job
 from experiment.run.result import Result
@@ -22,9 +23,10 @@ class SerialTestCase(unittest.TestCase):
         data, y = generate_data(train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1])
         dimension_names = ["1", "2", "3"]
         self.subspace = Subspace(data, dimension_names, np.ndarray([0, 1, 2]))
-        self.jobs: list[Job] = [Job(self.subspace, KNN()), Job(self.subspace, ECOD())]
+        self.jobs: list[Job] = [Job(self.subspace, KNN, dict()), Job(self.subspace, ECOD, dict()), Job(self.subspace, ABOD, dict())]
+        self.input_results: list[Result] = [Result(j) for j in self.jobs]
 
-        self.in_q: Queue[Job] = Queue()
+        self.in_q: Queue[Result] = Queue()
         self.out_q: Queue[Result] = Queue()
         self.stop = Event()
         self.serial = Serial(self.in_q, self.out_q, self.stop)
@@ -43,9 +45,9 @@ class SerialTestCase(unittest.TestCase):
     @timeout_decorator.timeout(timeout)
     def test_execute_job(self):
         self.serial.start()
-        for j in self.jobs:
+        for j in self.input_results:
             self.in_q.put(j)
-        for j in self.jobs:
+        for j in self.input_results:
             result = self.out_q.get()
             res_job = result.unpack()
             self.assertTrue(res_job.get_outlier_scores().size == self.data_shape[0])
@@ -58,13 +60,19 @@ class SerialTestCase(unittest.TestCase):
         lim_serial = Serial(self.in_q, lim_out_q, self.stop)
         lim_serial.start()
 
-        for j in self.jobs:
+        for j in self.input_results:
             self.in_q.put(j)
 
-        while self.in_q.qsize() >= len(self.jobs):
-            time.sleep(0.001)
+        while self.in_q.qsize() >= len(self.input_results) - 1:
+            print(self.in_q.qsize())
+            time.sleep(0.01)
 
-        for j in self.jobs:
+        # work around. Wait for second job finish. Goal: serial is unable to put in out_q
+        # no sleep would be better, but there is no way to look into the internals of the object
+        time.sleep(4)
+
+        print(len(self.input_results))
+        for j in self.input_results:
             lim_out_q.get().unpack()
 
         self.stop.set()
@@ -72,16 +80,34 @@ class SerialTestCase(unittest.TestCase):
     # test with model that throws an exception
     @timeout_decorator.timeout(timeout)
     def test_throwing_model(self):
-        throwing_job = Job(self.subspace, KNN(n_neighbors=self.data_shape[0] + 1))
+        #throwing_job = Job(self.subspace, KNN(n_neighbors=self.data_shape[0] + 1))
+        throwing_job_result = Result(Job(self.subspace, KNN, {"n_neihbors": self.data_shape[0] + 1}))
         self.serial.start()
-        self.in_q.put(throwing_job)
-        for j in self.jobs:
+        self.in_q.put(throwing_job_result)
+        for j in self.input_results:
             self.in_q.put(j)
 
         # first Result should throw
         self.assertRaises(Exception, self.out_q.get().unpack)
 
         # remaining jobs should be executed without problems
-        for j in self.jobs:
+        for j in self.input_results:
+            self.out_q.get().unpack()
+        self.stop.set()
+
+    @timeout_decorator.timeout(timeout)
+    def test_result_with_exception(self):
+        exception_result = Result(Job(), Exception("Test"))
+
+        self.serial.start()
+        self.in_q.put(exception_result)
+        for j in self.input_results:
+            self.in_q.put(j)
+
+        # first Result should throw
+        self.assertRaises(Exception, self.out_q.get().unpack)
+
+        # remaining jobs should be executed without problems
+        for j in self.input_results:
             self.out_q.get().unpack()
         self.stop.set()
