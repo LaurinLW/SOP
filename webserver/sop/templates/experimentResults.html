@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% for result in results %}
-    <p><a href="results/{{result.id}}" class="no_link_highlight" download> Download Result: {{result.file.name}}</a></p>
-    {% endfor %}
+<p><a href="results/all" class="no_link_highlight" id="multi_download" download> Download all Results as zip </a></p>
+{% for result in results %}
+<p><a href="results/{{result.id}}" class="no_link_highlight" id="single_download" download> Download Result: {{result.filename}}</a></p>
+{% endfor %}
 {% endblock %}

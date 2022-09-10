@@ -11,3 +11,6 @@ from sop.tests.seleniumTestDuplicateView import SeleniumTestDuplicateView
 from sop.tests.seleniumTestDetailView import SeleniumTestDetailView
 from sop.tests.seleniumTestDeleteView import SeleniumTestDeleteView
 from sop.tests.testDetailView import TestDetailView
+from sop.tests.seleniumTestResultView import SeleniumTestResultView
+from sop.tests.seleniumTestStartView import SeleniumTestStartView
+from sop.tests.seleniumTestStopView import SeleniumTestStopView

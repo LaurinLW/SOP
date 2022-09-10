@@ -59,6 +59,26 @@ def receiveError(error_message, version_id):
 
 
 @rpc_method
+def receiveWarning(warning_message, version_id):
+    """This rpc method receives a warning and saves it to the Version
+
+    Args:
+        warning_message (str): Str that describes the warning
+        version_id (int): Identifier of the version
+
+    Returns:
+        bool:
+    """
+    try:
+        version = VersionModel.objects.get(pk=version_id)
+        version.warning = warning_message
+        version.save()
+    except VersionModel.DoesNotExist:
+        return False
+    return True
+
+
+@rpc_method
 def receiveResult(file, version_id):
     """This rpc method receives a result and saves it to the Version
 

@@ -5,6 +5,8 @@ from django.db.models import Q
 from sop.models import ExperimentModel, VersionModel, ResultModel
 from django.http import HttpResponse
 import os
+from zipfile import ZipFile
+import io
 
 
 class ExperimentResultView(View, LoginRequiredMixin):
@@ -27,10 +29,21 @@ class ExperimentResultView(View, LoginRequiredMixin):
                 return render(request, self.template_name, {"version": version, "results": results})
             return ("/")
         else:
-            if (experiment.creator == request.user):
+            if experiment.creator == request.user:
                 file_id = kwargs.get("result_id")
-                result = ResultModel.objects.get(pk=file_id)
-                response = HttpResponse(result.resultFile.read(), 'text/plain')
-                response['Content-Disposition'] = 'inline; filename=' + os.path.basename(result.resultFile.path)
-                return response
+                if file_id != "all" and str(file_id).isnumeric():
+                    result = ResultModel.objects.get(pk=file_id)
+                    response = HttpResponse(result.resultFile.read(), 'text/plain')
+                    response['Content-Disposition'] = 'inline; filename=' + os.path.basename(result.resultFile.path)
+                    return response
+                elif file_id == "all":
+                    buffer = io.BytesIO()
+                    zip_file = ZipFile(buffer, 'w')
+                    for result in results:
+                        zip_file.write(result.resultFile.path, os.path.basename(result.resultFile.path))
+                    zip_file.close()
+                    response = HttpResponse(buffer.getvalue())
+                    response['Content-Type'] = 'application/x-zip-compressed'
+                    response['Content-Disposition'] = f'inline; filename={experiment.name}.{version.edits}.{version.runs}.zip'
+                    return response
             return ("/")

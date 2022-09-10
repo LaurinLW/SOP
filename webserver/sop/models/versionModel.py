@@ -30,6 +30,7 @@ class VersionModel(models.Model):
     algorithms = models.ManyToManyField(AlgorithmModel)
     experiment = models.ForeignKey(ExperimentModel, on_delete=models.CASCADE)
     error = models.CharField(max_length=100, null=True)
+    warning = models.CharField(max_length=100, null=True)
 
     def start(self) -> bool:
         # prepare working directory for container
