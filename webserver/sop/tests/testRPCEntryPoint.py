@@ -122,6 +122,26 @@ class TestRPCEntryPoint(LiveServerTestCase):
         requests.post(self.live_server_url + "/rpc", json=payload)
         self.assertEqual(VersionModel.objects.get(pk=self.v.pk).error, None)
 
+    def testSendWarning(self):
+        payload = {
+            "method": "receiveWarning",
+            "params": ["Warning: test", self.v.id],
+            "jsonrpc": "2.0",
+            "id": 0,
+        }
+        requests.post(self.live_server_url + "/rpc", json=payload)
+        self.assertEqual(VersionModel.objects.get(pk=self.v.pk).warning, "Warning: test")
+
+    def testSendWarning_Not_Existing_Version(self):
+        payload = {
+            "method": "receiveWarning",
+            "params": ["Warning: test", 0],
+            "jsonrpc": "2.0",
+            "id": 0,
+        }
+        requests.post(self.live_server_url + "/rpc", json=payload)
+        self.assertEqual(VersionModel.objects.get(pk=self.v.pk).warning, None)
+
     def testSendResult_Not_Existing_Version(self):
         payload = {
             "method": "receiveResult",

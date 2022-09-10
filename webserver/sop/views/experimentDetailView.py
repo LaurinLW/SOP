@@ -23,7 +23,7 @@ class ExperimentDetailView(View, LoginRequiredMixin):
         try:
             experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
             version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
-            versions = VersionModel.objects.all().filter(experiment_id=experiment.id).order_by("edits").order_by("runs").values()
+            versions = VersionModel.objects.all().filter(experiment_id=experiment.id).order_by("runs").order_by("edits").values()
         except ObjectDoesNotExist:
             return redirect("/home")
         if experiment.creator == request.user and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
