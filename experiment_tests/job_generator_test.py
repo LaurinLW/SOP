@@ -5,6 +5,7 @@ import unittest
 
 
 from experiment.run.job import Job
+from experiment.run.result import Result
 from experiment.supply.job_generator import JobGenerator
 from experiment.supply.parser.parameter_parser_json import JsonParameterParser
 from experiment.supply.subspace.subspace import Subspace
@@ -53,6 +54,5 @@ class JobGeneratorTest(unittest.TestCase):
         self.assertTrue(2 == len(self.jobGenerator.generate(self.subspace)))
 
     def test_first_job_has_right_subspace_dimensions(self) -> None:
-        list_jobs: list[Job] = self.jobGenerator.generate(self.subspace)
-        print(list_jobs[0].get_subspace_data().shape)
-        self.assertTrue(list_jobs[0].get_subspace_data().shape == (3, 3))
+        list_results: list[Result] = self.jobGenerator.generate(self.subspace)
+        self.assertTrue(list_results[0].unpack().get_subspace_data().shape == (3, 3))

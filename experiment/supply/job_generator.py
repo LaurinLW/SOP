@@ -1,7 +1,7 @@
 from pydoc import locate
-from pyod.models.base import BaseDetector
 
 from experiment.run.job import Job
+from experiment.run.result import Result
 from experiment.supply.parser.parameter_parser import ParameterParser
 from experiment.supply.subspace.subspace import Subspace
 
@@ -19,7 +19,7 @@ class JobGenerator:
         self.models: list[str] = models
         self.parser = parser
 
-    def generate(self, subspace: Subspace) -> list[Job]:
+    def generate(self, subspace: Subspace) -> list[Result]:
         """generates all possible Job pairs of the used models and the given Subspace
 
         Args:
@@ -28,11 +28,15 @@ class JobGenerator:
         Returns:
             list[Job]: returns a list of the generated Jobs
         """
-        job_list: list[Job] = list()
+        job_list: list[Result] = list()
 
         for i in self.models:
-            klass = locate(i)
-            instance: BaseDetector = klass(**self.parser.get_parameters(i))
-            job_list.append(Job(subspace, instance))
+            try:
+                klass: object = locate(i)
+                # instance: BaseDetector = klass(**self.parser.get_parameters(i))
+                job_list.append(Result(Job(subspace=subspace, klass=klass, parameters=self.parser.get_parameters(i))))
+
+            except Exception as e:
+                job_list.append(Result(e=e))
 
         return job_list

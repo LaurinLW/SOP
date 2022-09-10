@@ -59,8 +59,8 @@ def setup_f(experimente):
 
 
 def config_f(experimente):
-    print('Updating settings.py...')
-    set_setting('SHARED_EXPERIMENT', experimente)
+    print("Updating settings.py...")
+    set_setting("SHARED_EXPERIMENT", experimente)
 
 
 def start_f():
@@ -71,18 +71,22 @@ def start_f():
     )[1][1:-1]
     settings_file = os.path.join(os.getcwd(), "webserver", "sop", "settings.py")
     client = docker.from_env()
-    container_web = client.containers.create('sop-web', 
-                                             name='sop-web',
-                                             detach=True, 
-                                             volumes=['/var/run/docker.sock:/var/run/docker.sock', 
-                                                      experiment_folder + ':/sop/experimente',
-                                                      'sop-datasets:/sop/sop/views/user_datasets',
-                                                      'sop-algorithms:/sop/sop/views/user_algorithms',
-                                                      'sop-results:/sop/sop/results',
-                                                      settings_file + ':/sop/sop/settings.py'],
-                                             ports={'8000/tcp': 8080},
-                                             network='bridge')
-    nets = client.networks.list(names=['sop-network'])
+    container_web = client.containers.create(
+        "sop-web",
+        name="sop-web",
+        detach=True,
+        volumes=[
+            "/var/run/docker.sock:/var/run/docker.sock",
+            experiment_folder + ":/sop/experimente",
+            "sop-datasets:/sop/sop/views/user_datasets",
+            "sop-algorithms:/sop/sop/views/user_algorithms",
+            "sop-results:/sop/sop/results",
+            settings_file + ":/sop/sop/settings.py",
+        ],
+        ports={"8000/tcp": 8080},
+        network="bridge",
+    )
+    nets = client.networks.list(names=["sop-network"])
     if len(nets) != 1:
         print("Didn't find docket network sop-network")
         exit(1)
@@ -116,6 +120,7 @@ def stop_f():
     for c in exp_container:
         c.kill()
         c.remove()
+
 
 def iterate_f():
     client = docker.from_env()

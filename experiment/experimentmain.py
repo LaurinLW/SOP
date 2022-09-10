@@ -31,6 +31,7 @@ class Experiment:
         num_subspace: int,
         experiment_id: str,
         connection: str,
+        debug: bool
     ) -> None:
         """constructor
 
@@ -69,7 +70,11 @@ class Experiment:
 
         parameters: JsonParameterParser = JsonParameterParser(param_file)
 
-        server_connection: ServerConnection = RPCServerConnection(connection, experiment_id)
+        server_connection: ServerConnection
+        if debug:
+            server_connection = _DebugServerConnection(connection, experiment_id)
+        else:
+            server_connection: ServerConnection = RPCServerConnection(connection, experiment_id)
 
         self._progress: pc.ProgressControl = pc.ProgressControl(self, len(models), num_subspace, server_connection)
 
@@ -151,6 +156,18 @@ def _check_args(args: argparse.Namespace):
         exit(1)
 
 
+class _DebugServerConnection(ServerConnection):
+
+    def send_progress(self, progress: int):
+        print("Progress: ", progress)
+
+    def send_error(self, error: str):
+        print("ERROR: ", error)
+
+    def send_result(self, name: str):
+        print("Finished Result: ", name)
+
+
 if __name__ == "__main__":
     parser: argparse.ArgumentParser = argparse.ArgumentParser(description="This Program runs an experiment.")
     parser.add_argument("-d", type=str, help="Working directory with all files relevant to the experiment.", required=True)
@@ -160,7 +177,8 @@ if __name__ == "__main__":
     parser.add_argument("-ns", type=int, help="number of subspaces", required=True)
     parser.add_argument("-id", type=str, help="unique identifier of the experiment", required=True)
     parser.add_argument("-c", type=str, help="server url", required=True)
+    parser.add_argument("-debug", help="enables debug mode, redirects server messages to console", action="store_true")
 
     args: argparse.Namespace = parser.parse_args()
     _check_args(args)
-    Experiment(args.d, args.s, args.minsd, args.maxsd, args.ns, args.id, args.c)
+    Experiment(args.d, args.s, args.minsd, args.maxsd, args.ns, args.id, args.c, args.debug)

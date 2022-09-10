@@ -5,18 +5,19 @@ from queue import Queue
 from threading import Event
 from multiprocessing.shared_memory import SharedMemory
 from typing import Optional
-import pyod
 import numpy as np
 import multiprocessing as mp
 from multiprocessing import Pool
 from multiprocessing.pool import AsyncResult
+from pyod.models.base import BaseDetector
 
 
 class Parallel(Runner):
-    """This class is a Runner implementation that runs multiple Jobs in parallel.
-    """
+    """This class is a Runner implementation that runs multiple Jobs in parallel."""
 
-    def __init__(self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event, num_procs: int):
+    def __init__(
+        self, in_q: Queue[Job], out_q: Queue[Result], stop_stage: Event, num_procs: int
+    ):
         super().__init__(in_q, out_q, stop_stage)
         self._num_procs: int = num_procs
         self._id_counter: int = 0
@@ -25,9 +26,10 @@ class Parallel(Runner):
         self._execution_limit = 2 * num_procs
         # map jobs to id for proper
         self._job_dict: dict[int, Job] = dict()
-        self._next_job: Optional[Job] = None
+        self._next_input: Optional[Result] = None
         self._next_local_job: Optional[_LocalJob] = None
         self._next_result: Optional[Result] = None
+        self._export_list: list[Result] = list()
 
         # not using spawn could cause deadlocks. See: https://pythonspeed.com/articles/python-multiprocessing/
         # deadlocks occured in unittest execution of all tests
@@ -45,58 +47,85 @@ class Parallel(Runner):
         self._pool.terminate()
 
     def _get_jobs(self):
-        """Gets jobs from in_q, loads shared memory, puts jobs in the local execution queue
-        """
-        while (len(self._job_dict) <= self._execution_limit or (self._next_job is not None)) and not self._stop_stage.is_set():
-            if self._next_job is None:
+        """Gets jobs from in_q, loads shared memory, puts jobs in the local execution queue"""
+        while (
+            len(self._job_dict) <= self._execution_limit or (self._next_input is not None)
+        ) and not self._stop_stage.is_set():
+            if self._next_input is None:
 
                 try:
-                    self._next_job = self._in_q.get(timeout=self._q_timeout)
+                    self._next_input = self._in_q.get(timeout=self._q_timeout)
                 except Exception:
                     # could not get job
                     # sanity check
-                    assert(self._next_job is None)
+                    assert self._next_input is None
                     break
 
-                self._memory_manager.register_subspace(self._next_job.get_subspace_data())
+                try:
+                    next_job = self._next_input.unpack()
+                except Exception:
+                    self._export_list.append(self._next_input)
+                    self._next_input = None
+                    continue
+
+                self._memory_manager.register_subspace(
+                    next_job.get_subspace_data()
+                )
 
                 j_id = self._id_counter
                 self._id_counter += 1
-                self._job_dict[j_id] = self._next_job
-                data: np.ndarray = self._next_job.get_subspace_data()
-                self._next_local_job = _LocalJob(self._next_job.model,
-                                                 self._memory_manager.get_shared_memory_name(self._next_job.get_subspace_data()),
-                                                 j_id,
-                                                 data.dtype,
-                                                 data.shape)
+                self._job_dict[j_id] = next_job
+                data: np.ndarray = next_job.get_subspace_data()
+                self._next_local_job = _LocalJob(
+                    next_job.get_model_class(),
+                    next_job.get_parameters(),
+                    self._memory_manager.get_shared_memory_name(
+                        next_job.get_subspace_data()
+                    ),
+                    j_id,
+                    data.dtype,
+                    data.shape,
+                )
 
-                result = self._pool.apply_async(_process_execution, (self._next_local_job,))
+                result = self._pool.apply_async(
+                    _process_execution, (self._next_local_job,)
+                )
                 self._async_results.append(result)
-                self._next_job = None
+                self._next_input = None
 
     def _export_finished(self):
         finished = [r for r in self._async_results if r.ready()]
-        if len(finished) == 0:
+        if len(finished) == 0 and len(self._export_list):
             return
 
         while not self._stop_stage.is_set():
 
             if self._next_result is None:
 
-                if len(finished) == 0:
-                    break
+                if len(finished) != 0:
 
-                ares = finished.pop()
-                self._async_results.remove(ares)
+                    ares = finished.pop()
+                    self._async_results.remove(ares)
 
-                self._next_local_result: _LocalResult = ares.get()
+                    self._next_local_result: _LocalResult = ares.get()
 
-                if self._next_local_result.e is None:
                     job = self._job_dict[self._next_local_result.j_id]
-                    job.set_outlier_scores(self._next_local_result.model_scores)
-                    self._next_result = Result(job)
+                    job.set_model_result(self._next_local_result.model, self._next_local_result.model_scores)
+
+                    if self._next_local_result.e is None:
+                        self._next_result = Result(job)
+                    else:
+                        self._next_result = Result(
+                            self._job_dict[self._next_local_result.j_id],
+                            self._next_local_result.e,
+                        )
+
+                elif len(self._export_list) != 0:
+                    self._next_result = self._export_list.pop()
+
                 else:
-                    self._next_result = Result(self._job_dict[self._next_local_result.j_id], self._next_local_result.e)
+                    # all currently exportable jobs are exported(jobs finished while exporting excluded)
+                    break
 
             try:
                 self._out_q.put(item=self._next_result, timeout=self._q_timeout)
@@ -110,11 +139,19 @@ class Parallel(Runner):
 
 
 class _LocalJob:
-    """simple record class holding job information for processes
-    """
+    """simple record class holding job information for processes"""
 
-    def __init__(self, model: pyod.models.base.BaseDetector, shm_name: str, j_id: int, dtype: np.dtype, data_shape: np.shape):
-        self.model: pyod.models.BaseDetector = model
+    def __init__(
+        self,
+        class_: object,
+        parameters: dict,
+        shm_name: str,
+        j_id: int,
+        dtype: np.dtype,
+        data_shape: np.shape,
+    ):
+        self.class_ = class_
+        self.parameters = parameters
         self.shm_name: str = shm_name
         self.j_id: int = j_id
         self.dtype: np.dtype = dtype
@@ -122,17 +159,25 @@ class _LocalJob:
 
 
 class _LocalResult:
-
-    def __init__(self, model_scores: np.array, e: Exception, j_id: int):
-        self.model_scores = model_scores
-        self.e = e
-        self.j_id = j_id
+    def __init__(self, model_scores: np.array, model: str, e: Exception, j_id: int):
+        self.model_scores: np.ndarray() = model_scores
+        self.model: str = model
+        self.e: Exception = e
+        self.j_id: int = j_id
 
 
 def _process_execution(loc_job: _LocalJob):
     shm: Optional[SharedMemory] = None
 
     error: Optional[Exception] = None
+
+    model: BaseDetector
+
+    try:
+        model: BaseDetector = loc_job.class_(**loc_job.parameters)
+    except Exception as e:
+        return _LocalResult(None, None, e, loc_job.j_id)
+
     # Extra catch for shm. If shm was created it should be closed at the end.
     try:
         shm = SharedMemory(loc_job.shm_name)
@@ -141,8 +186,10 @@ def _process_execution(loc_job: _LocalJob):
 
     if shm is not None:
         try:
-            data: np.ndarray = np.ndarray(shape=loc_job.data_shape, dtype=loc_job.dtype, buffer=shm.buf)
-            loc_job.model.fit(data)
+            data: np.ndarray = np.ndarray(
+                shape=loc_job.data_shape, dtype=loc_job.dtype, buffer=shm.buf
+            )
+            model.fit(data)
 
         except Exception as e:
             error = e
@@ -150,13 +197,13 @@ def _process_execution(loc_job: _LocalJob):
         shm.close()
 
         if error is None:
-            loc_res = _LocalResult(loc_job.model.decision_scores_, error, loc_job.j_id)
+            loc_res = _LocalResult(model.decision_scores_, str(model), error, loc_job.j_id)
         else:
             # decision scores are not available in case of errors
-            loc_res = _LocalResult(None, error, loc_job.j_id)
+            loc_res = _LocalResult(None, str(model), error, loc_job.j_id)
 
     else:
-        loc_res = _LocalResult(None, error, loc_job.j_id)
+        loc_res = _LocalResult(str(model), None, error, loc_job.j_id)
 
     return loc_res
 
@@ -216,7 +263,9 @@ class _MemoryManager:
             return shm.name
 
     def _get_shared_memory(self, data: np.ndarray) -> str:
-        list_: list[tuple[np.ndarray, SharedMemory]] = [item for item in self._memory_mapping if item[0] is data]
+        list_: list[tuple[np.ndarray, SharedMemory]] = [
+            item for item in self._memory_mapping if item[0] is data
+        ]
 
         if len(list_) == 0:
             return None

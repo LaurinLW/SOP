@@ -65,7 +65,9 @@ class CSVExporterTest(unittest.TestCase):
                 dimensions.append(f"dim{j},{i}")
             for j in range(len(self.models)):
                 subspace = Subspace(d, dimensions, indices)
-                job = Job(subspace, self.fitted_models[len(self.models) * i + j])
+                job = Job(subspace, self.models[j], dict())
+                fit_model = self.fitted_models[len(self.models) * i + j]
+                job.set_model_result(str(fit_model), fit_model.decision_scores_)
                 self.results.append(Result(job))
 
         delete_directory_contents(self.export_path)
@@ -144,6 +146,7 @@ class CSVExporterTest(unittest.TestCase):
             if not self.verifier.verify_job(r.unpack()):
                 self.fail("failed verification")
 
+    @timeout_decorator.timeout(timeout)
     def test_finalize_single_non_existing(self):
         for r in self.results:
             self.in_q.put(r)
@@ -157,6 +160,32 @@ class CSVExporterTest(unittest.TestCase):
         for r in self.results:
             if not self.verifier.verify_job(r.unpack()):
                 self.fail("failed verification")
+
+    @timeout_decorator.timeout(timeout)
+    def test_error_messages(self):
+        subspace = Subspace(self.data[0], ["dim1", "dim2", "dim3"], [i for i in range(self.data[0].shape[0])])
+        error_no_class = Result(Job(subspace, None, None), Exception("Test Exception"))
+        error_class_params = Result(Job(subspace, KDE, {"contamination": 0.1}), Exception("Another Test Exception"))
+        succeeding_job = Job(subspace, KDE, dict())
+        model = KDE()
+        model.fit(succeeding_job.get_subspace_data())
+        succeeding_job.set_model_result(str(model), model.decision_scores_)
+        succeeding_result = Result(succeeding_job)
+
+        self.in_q.put(error_no_class)
+        self.in_q.put(error_class_params)
+        self.in_q.put(succeeding_result)
+
+        self.progresscontrol.wait(2)
+        self.exporter.finalize()
+
+        df = pd.read_csv(os.path.join(self.export_path, "subspace_result0.csv"))
+
+        self.verifier.load(self.export_path)
+        self.assertTrue(self.verifier.verify_job(succeeding_job))
+        # index + 3 subspace dim + 2 results
+        self.assertEqual(len(df.columns), 7)
+        print(df.columns)
 
 
 def delete_directory_contents(path):
@@ -193,7 +222,7 @@ class _ExportVerifier:
         if df is None:
             return False
 
-        return np.allclose(df[str(job.model)].to_numpy(), job.get_outlier_scores(), equal_nan=True)
+        return np.allclose(df[job.get_model_string()].to_numpy(), job.get_outlier_scores(), equal_nan=True)
 
     def _find_dataframe(self, subspace: np.ndarray) -> pd.DataFrame:
         """Finds fitting dataframe for given subspace data
