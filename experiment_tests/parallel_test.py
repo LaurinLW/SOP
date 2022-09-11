@@ -63,7 +63,6 @@ class ParallelRunnerTestCase(unittest.TestCase):
     def test_single_job(self):
         self.parallel.start()
         self.in_q.put(self.input_results[0])
-        # self.in_q.put(self.job_list[1])
         self.assertEqual(self.out_q.get().unpack().get_outlier_scores().size, self.data_shape[0])
 
     @timeout_decorator.timeout(timeout)

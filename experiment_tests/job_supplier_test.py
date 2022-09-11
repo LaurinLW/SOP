@@ -112,7 +112,6 @@ class JobSupplierTest(unittest.TestCase):
     def test_is_exception(self) -> None:
         self.jobSupplier_exception.start()
         self.assertRaises(Exception, self.out.get().unpack)
-        #self.assertTrue(self.out.get()._e is not None)
         self.stop.set()
         self.jobSupplier_exception.join()
     
@@ -124,3 +123,4 @@ class JobSupplierTest(unittest.TestCase):
         self.out_too_small.get()
         self.stop.set()
         self.jobSupplier_small_queue.join()
+        self.assertTrue(self.out_too_small.full())

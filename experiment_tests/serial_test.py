@@ -78,7 +78,6 @@ class SerialTestCase(unittest.TestCase):
     # test with model that throws an exception
     @timeout_decorator.timeout(timeout)
     def test_throwing_model(self):
-        #throwing_job = Job(self.subspace, KNN(n_neighbors=self.data_shape[0] + 1))
         throwing_job_result = Result(Job(self.subspace, KNN, {"n_neihbors": self.data_shape[0] + 1}))
         self.serial.start()
         self.in_q.put(throwing_job_result)
