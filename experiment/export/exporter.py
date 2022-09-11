@@ -19,7 +19,7 @@ class Exporter(PipelineStage, abc.ABC):
         self._progress = progress
 
     @abc.abstractmethod
-    def finalize() -> None:
+    def finalize(self) -> None:
         """Should be called by ProgressControl after last export. Creates a valid final state of all exports.
         """
         pass

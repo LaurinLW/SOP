@@ -16,7 +16,7 @@ class CSVExporter(ex.Exporter):
     The seperator for the csv file is ','.
     """
 
-    def __init__(self, progress: pc.ProgressControl, in_q: Queue[Result], stop_stage: Event, path: str):
+    def __init__(self, progress: "pc.ProgressControl", in_q: Queue[Result], stop_stage: Event, path: str):
         self._path = path
         self._dataframes: dict[tuple[str], pd.DataFrame] = dict()
         self._next_export_id: int = 0
