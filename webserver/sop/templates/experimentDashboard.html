@@ -2,31 +2,31 @@
 
 {% block content %}
 <div>
-    <span>{{version.experiment.name}} {{version.edits}}.{{version.runs}}</span>
+    <span>Experiment: {{version.experiment.name}} {{version.edits}}.{{version.runs}}</span>
     <div>
         <ul style="list-style: none;">
             {% for s in metrics %}
-                <li style="float: left;padding: 5px;"><a href="/dashboard/{{version.experiment.id}}/{{version.experiment.latestVersion}}/{{s}}">{{s}}</a></li>
+                <li style="float: left;padding: 5px;"><a style="color: #fff;" href="/dashboard/{{version.experiment.id}}/{{version.experiment.latestVersion}}/{{s}}">{{s}}</a></li>
             {% endfor %}
         </ul>
     </div>
-    <div style="width: 95%;height: 70%;">
+    <div style="width: 95%;height: 70%;"><br/>
         {{metricView}}
         <div style="text-align: center;">
             {% if prevPage != -1 %}
-            <a href="{{request.path}}?page={{prevPage}}{% if 'filter' in request.GET %}&filter={{request.GET.filter}}{% endif %}">Prev</a>
+            <a style="color: #fff;" id="prev_page" href="{{request.path}}?page={{prevPage}}{% if 'filter' in request.GET %}&filter={{request.GET.filter}}{% endif %}">Prev</a>
             {% else %}
             &nbsp;&nbsp;&nbsp;&nbsp;
             {% endif%}
             {% if nextPage != -1 %}
-            <a href="{{request.path}}?page={{nextPage}}{% if 'filter' in request.GET %}&filter={{request.GET.filter}}{% endif %}">Next</a>
+            <a style="color: #fff;" id="next_page" href="{{request.path}}?page={{nextPage}}{% if 'filter' in request.GET %}&filter={{request.GET.filter}}{% endif %}">Next</a>
             {% endif %}
             </div>
     </div><br>
     <form action="/dashboard/{{version.experiment.id}}/{{version.experiment.latestVersion}}/{{selectedMetric}}" method="get">
         <input type="text" id="filter" name="filter" value="{% if 'filter' in request.GET %}{{request.GET.filter}}{% endif %}">
         <input type="text" style="display: none;" id="page" name="page" value="{{currentPage}}">
-        <input type="submit" value="Filter">
+        <input id="filter_button" type="submit" value="Filter">
     </form>
 </div>
 {% endblock %}

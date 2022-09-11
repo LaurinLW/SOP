@@ -1,4 +1,4 @@
 from .metric import Metric
-from .testMetric import TestMetric
-from .algoMetric import AlgoMetric
-from .lineMetric import LineMetric
+from .test_metric import TestMetric
+from .algo_metric import AlgoMetric
+from .line_metric import LineMetric

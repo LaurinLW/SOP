@@ -12,3 +12,6 @@ from sop.tests.testDetailView import TestDetailView
 from sop.tests.seleniumTestResultView import SeleniumTestResultView
 from sop.tests.seleniumTestStartView import SeleniumTestStartView
 from sop.tests.seleniumTestStopView import SeleniumTestStopView
+from sop.tests.seleniumTestDashboardView import SeleniumTestDashboardView
+from sop.tests.testMetrics import TestMetrics
+from sop.tests.testMetricViews import TestMetricViews

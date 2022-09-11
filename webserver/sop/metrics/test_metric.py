@@ -1,11 +1,12 @@
 from sop.metrics import Metric
 import string
 from sop.models import VersionModel
-from sop.metrics.views import TableView
+from sop.metrics.views import TableView, ErrorView
 import pandas as pd
 import numpy as np
 from sop.models import ResultModel
 from django.db.models import Q
+from pandas.core.computation.ops import UndefinedVariableError
 
 
 class TestMetric(Metric):
@@ -39,17 +40,32 @@ class TestMetric(Metric):
         queries = filterString.split(';')
         for q in queries:
             s = q.split('=')
-            if s[0] == 'threshold':
-                percentile = float(s[1])
-            elif s[0] == 'select':
+            argument = s[0].strip()
+            if argument == 'threshold':
+                try:
+                    percentile = float(s[1].strip())
+                except ValueError:
+                    self._view = ErrorView('Threshold value is not a float')
+                    return
+                if percentile > 1 or percentile < 0:
+                    self._view = ErrorView('Threshold has to be between 0 and 1')
+                    return
+            elif argument == 'select':
                 select = ['index']
                 columns = s[1].split(',')
                 for c in columns:
-                    select.append(c)
-            elif s[0] == 'query':
-                query = s[1]
+                    select.append(c.strip())
+            elif argument == 'query':
+                query = s[1].strip()
+            elif argument != '':
+                self._view = ErrorView('Unknown argument: ' + argument)
+                return
 
-        dataset = dataset[select].query(query)
+        try:
+            dataset = dataset[select].query(query)
+        except (ValueError, KeyError, UndefinedVariableError) as e:
+            self._view = ErrorView(str(e))
+            return
 
         # setup new columns for the algorithm categories
         types = ["Probabilistic", "Linear Model", "Proximity-Based", "Outlier Ensembles", "Neural Networks", "Other"]
