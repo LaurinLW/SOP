@@ -22,6 +22,7 @@ test:
     - pip install -r requirements.txt
   script:
     - flake8 --config setup.cfg webserver experiment
+    - python -m unittest experiment_tests/*.py
     - cd webserver && python manage.py makemigrations && python manage.py migrate
     - python manage.py test sop.tests
 
