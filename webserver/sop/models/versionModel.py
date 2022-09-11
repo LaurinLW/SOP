@@ -63,14 +63,15 @@ class VersionModel(models.Model):
             return False
         client = docker.from_env()
         container = client.containers.run(EXPERIMENT_IMAGE,
-                                          entrypoint=f'python experimentmain.py -id %d -s %d -d %s -minsd %d -maxsd %d -ns %d -c %s' %
+                                          entrypoint=f'python experimentmain.py -id %d -s %d -d %s -minsd %d -maxsd %d -ns %d -c %s -p %d' %
                                           (self.id,
                                            self.seed,
                                            '/experimentconfig',
                                            self.minDimension,
                                            self.maxDimension,
                                            self.numberSubspaces,
-                                           settings.RPC_PATH),
+                                           settings.RPC_PATH,
+                                           settings.EXPERIMENT_THREADS),
                                           network='sop-network',
                                           detach=True,
                                           remove=True,

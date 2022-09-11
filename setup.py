@@ -11,6 +11,20 @@ def set_setting(key: str, value: str):
     cnf.append(key + " = '" + value + "'")
     write_settings(cnf)
 
+def add_allowed_host(host: str):
+    cnf = read_settings()
+    s = [index for index, g in enumerate(cnf) if g.startswith('ALLOWED_HOSTS')]
+    if len(s) == 0:
+        cnf.append("ALLOWED_HOSTS = ['*']")
+        write_settings(cnf)
+        return
+    index = s[0]
+    if ']' in cnf[index]:
+        cnf[index] = cnf[index].replace(']', "'" + host + "',]")
+    else:
+        cnf.insert(index+1, "'" + host + "',")
+
+    write_settings(cnf)
 
 def read_settings():
     lines = []
@@ -95,12 +109,14 @@ def start_f():
     print("Starting web container...")
     container_web.start()
     container_web.reload()
+    ip = container_web.attrs["NetworkSettings"]["Networks"]["sop-network"]["IPAddress"]
     set_setting(
         "RPC_PATH",
         "http://"
         + container_web.attrs["NetworkSettings"]["Networks"]["sop-network"]["IPAddress"]
         + ":8000/rpc",
     )
+    add_allowed_host(ip)
     container_web.restart()
 
 
