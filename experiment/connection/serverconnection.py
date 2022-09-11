@@ -27,10 +27,19 @@ class ServerConnection(abc.ABC):
 
     @abc.abstractmethod
     def send_error(self, error: str):
-        """This method is used to notify the server of errors that occured in execution.
+        """This method is used to notify the server of errors that are not recoverable.
 
         Args:
             error (str): error message
+        """
+        pass
+
+    @abc.abstractmethod
+    def send_warning(self, warning: str):
+        """This method is used to notify the server of recoverable errors that occured in execution.
+
+        Args:
+            warning (str): warning message
         """
         pass
 
