@@ -47,10 +47,10 @@ class SubspaceGenerator:
         """creates a new Subspace and returns it
 
         Raises:
-            StopIteration: when the numbers of wanted Subspaces was reached and another one is requested
+            StopIteration: when the numbers of wanted Subspaces is reached and another one is requested
 
         Returns:
-            Subspace: returns the created Subspace
+            Subspace: returns the newly created Subspace
         """
         if self.__quantity_created_subspaces < self.__number_subspaces:
             subspace_index: np.ndarray = self.__cleanedData.index.to_numpy()

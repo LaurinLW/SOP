@@ -1,17 +1,23 @@
 import unittest
 import numpy as np
+from typing import TextIO
+import os
 
 from django.forms import JSONField
 from multiprocessing import Queue
 from pandas import DataFrame
 from threading import Event
+from experiment.run.job import Job
+
+from experiment.supply.job_supplier import JobSupplier
+from experiment.supply.parser.parameter_parser_json import JsonParameterParser
 
 
 class JobSupplierTest(unittest.TestCase):
     def setUp(self):
-        self.number_subspaces: int = 4
-        self.min_dimension: int = 5
-        self.max_dimension: int = 10
+        self.number_subspaces: int = 2
+        self.min_dimension: int = 1
+        self.max_dimension: int = 3
         self.seed: int = 42
         self.data: DataFrame = DataFrame(
             np.array(
@@ -24,30 +30,56 @@ class JobSupplierTest(unittest.TestCase):
             columns=["a", "Land", "c", "d", "e", "f", "g", "h", "i"],
         )
         self.models: list[str] = ["pyod.models.abod.ABOD", "pyod.models.anogan.AnoGAN"]
-        self.parameters: JSONField = {
-            "pyod.models.abod.ABOD": {
-                "contamination": 0.2,
-                "n_neighbors": 9,
-                "method": "fast",
-            },
-            "pyod.models.anogan.AnoGAN": {
-                "activation_hidden": "tanh",
-                "dropout_rate": 0.3,
-                "latent_dim_G": 2,
-                "G_layers": [20, 10, 3, 10, 20],
-                "verbose": 1,
-                "D_layers": [20, 10, 5],
-                "index_D_layer_for_recon_error": 1,
-                "epochs": 400,
-                "preprocessing": True,
-                "learning_rate": 0.005,
-                "learning_rate_query": 0.001,
-                "epochs_query": 20,
-                "index_D_layer_for_recon_error": 1,
-                "batch_size": 30,
-                "output_activation": None,
-                "contamination": 0.1,
-            },
-        }
-        self.out: Queue = Queue(8)
+        test_dir = (os.path.sep).join((__file__.split(".")[0]).split(os.path.sep)[0:-1])
+        self.file: TextIO = open(
+            os.path.join(test_dir, "test_resources", "job_generator_test_json.json"),
+            "r",
+        )
+        self.parser: JsonParameterParser = JsonParameterParser(self.file)
+        self.out: Queue = Queue(4)
         self.stop: Event = Event()
+        self.jobSupplier: JobSupplier = JobSupplier(
+            self.number_subspaces,
+            self.min_dimension,
+            self.max_dimension,
+            self.seed,
+            self.data,
+            self.models,
+            self.parser,
+            self.out,
+            self.stop,
+        )
+
+        self.jobSupplier_exception: JobSupplier = JobSupplier(
+            self.number_subspaces,
+            self.min_dimension,
+            self.max_dimension,
+            self.seed,
+            self.data,
+            self.models,
+            self.file,
+            self.out,
+            self.stop,
+        )
+
+    def test_amount_elements_queue(self) -> None:
+        self.jobSupplier.run()
+        self.assertTrue(self.out.full())
+
+    def test_amount_elements_queue_empty(self) -> None:
+        self.jobSupplier.run()
+        self.out.get()
+        self.out.get()
+        self.out.get()
+        self.out.get()
+        self.assertTrue(self.out.empty())
+
+    def test_is_job(self) -> None:
+        self.jobSupplier.run()
+        self.assertTrue(
+            isinstance(self.out.get().unpack(), Job) and self.out.get()._e is None
+        )
+
+    def test_is_exception(self) -> None:
+        self.jobSupplier_exception.run()
+        self.assertTrue(self.out.get()._e is not None)

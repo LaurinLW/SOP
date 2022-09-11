@@ -1,4 +1,3 @@
-from typing import TextIO
 from pandas import DataFrame
 from queue import Queue
 from threading import Event, Thread
@@ -6,6 +5,7 @@ from threading import Event, Thread
 from experiment.pipelinestage import PipelineStage
 from experiment.run.job import Job
 from experiment.supply.job_generator import JobGenerator
+from experiment.supply.parser.parameter_parser_json import JsonParameterParser
 from experiment.supply.subspace.subspace_generator import SubspaceGenerator
 
 from experiment.supply.preprocessing.cleaner import Cleaner
@@ -30,7 +30,7 @@ class JobSupplier(PipelineStage):
         seed: int,
         data: DataFrame,
         models: list[str],
-        parameterFile: TextIO,
+        parser: JsonParameterParser,
         out: Queue,
         stop: Event,
     ) -> None:
@@ -43,7 +43,7 @@ class JobSupplier(PipelineStage):
             seed (int): seed for random numbers
             data (DataFrame): DataFrame to make Subspaces of
             models (list[str]): String list of the import path of all used pyod models
-            parameters (JSONField): JSONField of the parameters of the used pyod models
+            parser (JsonParameterParser): JsonParameterParser with the parameters of the used pyod models
             out (Queue): Queue in which to put Jobs to process
             stop (Event): Event which when triggered stops the Thread JobSupplier
         """
@@ -53,9 +53,15 @@ class JobSupplier(PipelineStage):
         self.__cleaner: Cleaner = DropNaNCleaner()
         self.__encoder: Encoder = EncoderOneHot()
         self.subspace_generator: SubspaceGenerator = SubspaceGenerator(
-            number_subspaces, min_dimension, max_dimension, seed, data, self.__encoder, self.__cleaner
+            number_subspaces,
+            min_dimension,
+            max_dimension,
+            seed,
+            data,
+            self.__encoder,
+            self.__cleaner,
         )
-        self.__job_generator = JobGenerator(models, parameterFile)
+        self.__job_generator = JobGenerator(models, parser)
         self.__stop: Event = stop
         self.__out_queue: Queue = out
         self.__jobs_failed_to_add: list[Job] = list()

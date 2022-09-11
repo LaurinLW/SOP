@@ -14,18 +14,25 @@ class JobTestCase(unittest.TestCase):
             train_only=True, n_train=self.data_shape[0], n_features=self.data_shape[1]
         )
         self.dimension_names = ["1", "2", "3"]
-        self.parameters: dict = {'algorithm': 'auto', 'contamination': 0.1, 'leaf_size': 30, 'method': 'largest', 'metric': 'minkowski', 'metric_params': None, 'n_jobs': 1, 'n_neighbors': 5, 'p': 2, 'radius': 1.0}
+        self.parameters: dict = {
+            "algorithm": "auto",
+            "contamination": 0.1,
+            "leaf_size": 30,
+            "method": "largest",
+            "metric": "minkowski",
+            "metric_params": None,
+            "n_jobs": 1,
+            "n_neighbors": 5,
+            "p": 2,
+            "radius": 1.0,
+        }
         self.subspace = Subspace(self.data, self.dimension_names, np.ndarray([0, 1, 2]))
         self.model = KNN()
-        self.job = Job(subspace=self.subspace, klass=KNN(), parameters= self.parameters)
-        #self.job.model.fit(self.data)
+        self.job = Job(subspace=self.subspace, klass=KNN(), parameters=self.parameters)
         self.untrained_job = Job(self.subspace, KNN())
 
-    # def test_get_outlier_score(self):
-    #    self.assertTrue(self.job.get_outlier_scores().size is self.data_shape[0])
-
-    # def test_get_outlier_score_untrained(self):
-    #    self.assertTrue(self.untrained_job.get_outlier_scores() is None)
+    def test_get_outlier_score_untrained(self):
+        self.assertTrue(self.untrained_job.get_outlier_scores() is None)
 
     def test_get_subspace_dim(self):
         dimensions = self.job.get_subspace_dimensions()
@@ -36,6 +43,4 @@ class JobTestCase(unittest.TestCase):
         self.assertTrue(np.array_equal(self.job.get_subspace_data(), self.data))
 
     def test_get_parameters(self):
-        print(self.job.get_parameters())
-        print(self.model.get_params())
         self.assertEqual(self.job.get_parameters(), self.model.get_params())
