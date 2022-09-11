@@ -37,6 +37,6 @@ class JobGenerator:
                 job_list.append(Result(Job(subspace=subspace, klass=klass, parameters=self.parser.get_parameters(i))))
 
             except Exception as e:
-                job_list.append(Result(e=e))
+                job_list.append(Result(Job(subspace=subspace, klass=None, parameters=None), e=e))
 
         return job_list

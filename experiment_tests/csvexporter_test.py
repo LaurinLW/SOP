@@ -185,7 +185,6 @@ class CSVExporterTest(unittest.TestCase):
         self.assertTrue(self.verifier.verify_job(succeeding_job))
         # index + 3 subspace dim + 2 results
         self.assertEqual(len(df.columns), 7)
-        print(df.columns)
 
 
 def delete_directory_contents(path):

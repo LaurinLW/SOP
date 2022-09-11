@@ -62,24 +62,39 @@ class JobSupplierTest(unittest.TestCase):
             self.stop,
         )
 
+    def tearDown(self) -> None:
+        self.stop.set()
+
     def test_amount_elements_queue(self) -> None:
-        self.jobSupplier.run()
-        self.assertTrue(self.out.full())
+        self.jobSupplier.start()
+
+        for i in range(self.number_subspaces * len(self.models)):
+            self.out.get(timeout=10)
+
+        self.stop.set()
+        self.jobSupplier.join()
 
     def test_amount_elements_queue_empty(self) -> None:
-        self.jobSupplier.run()
+        self.jobSupplier.start()
         self.out.get()
         self.out.get()
         self.out.get()
         self.out.get()
         self.assertTrue(self.out.empty())
+        self.stop.set()
+        self.jobSupplier.join()
 
     def test_is_job(self) -> None:
-        self.jobSupplier.run()
+        self.jobSupplier.start()
         self.assertTrue(
             isinstance(self.out.get().unpack(), Job) and self.out.get()._e is None
         )
+        self.stop.set()
+        self.jobSupplier.join()
 
     def test_is_exception(self) -> None:
-        self.jobSupplier_exception.run()
-        self.assertTrue(self.out.get()._e is not None)
+        self.jobSupplier_exception.start()
+        self.assertRaises(Exception, self.out.get().unpack)
+        #self.assertTrue(self.out.get()._e is not None)
+        self.stop.set()
+        self.jobSupplier_exception.join()
