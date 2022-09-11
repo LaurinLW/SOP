@@ -94,3 +94,5 @@ class JobSupplier(PipelineStage):
                 except Exception:
                     self.__jobs_failed_to_add.append(job)
                     continue
+
+        self.__stop.wait()

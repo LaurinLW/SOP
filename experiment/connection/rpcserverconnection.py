@@ -18,6 +18,10 @@ class RPCServerConnection(ServerConnection):
         payload = self._create_payload("receiveError", [error, self._experiment_id])
         requests.post(self._server, json=payload)
 
+    def send_warning(self, warning: str):
+        payload = self._create_payload("receiveWarning", [warning, self._experiment_id])
+        requests.post(self._server, json=payload)
+
     def send_result(self, name: str):
         payload = self._create_payload("receiveResult", [name, self._experiment_id])
         requests.post(self._server, json=payload)

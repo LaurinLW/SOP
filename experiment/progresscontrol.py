@@ -67,7 +67,7 @@ class ProgressControl:
             subspace_dim (list[str]): dimension titles of the subspace
             error (Exception): error that occured
         """
-        self._server.send_error(str(error))
+        self._server.send_warning(str(error))
         self.update(subspace_dim)
 
     def get_progress(self) -> int:

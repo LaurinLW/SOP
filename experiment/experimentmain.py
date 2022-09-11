@@ -13,8 +13,10 @@ import experiment.export.csvexporter as csvex
 import experiment.progresscontrol as pc
 from experiment.connection.rpcserverconnection import RPCServerConnection
 from experiment.connection.serverconnection import ServerConnection
+from experiment.run.parallel import Parallel
 import signal
 import json
+import time
 
 
 class Experiment:
@@ -31,7 +33,8 @@ class Experiment:
         num_subspace: int,
         experiment_id: str,
         connection: str,
-        debug: bool
+        debug: bool,
+        processes: int = 1
     ) -> None:
         """constructor
 
@@ -43,7 +46,17 @@ class Experiment:
             num_subspace (int): number of subspaces that should be generated
             experiment_id (str): unique identifier for the experiment
             connection (str): string that allows to establish a connection to the server
+            debug (bool): if true redirects all server messages to the console
+            processes (int): number of processes used for parallel execution
         """
+
+        server_connection: ServerConnection
+        if debug:
+            server_connection = _DebugServerConnection(connection, experiment_id)
+        else:
+            server_connection: ServerConnection = RPCServerConnection(connection, experiment_id)
+
+        self._check_args(min_subspace_dim, max_subspace_dim, num_subspace, path_working_directory, server_connection)
         # signal handling for graceful shutdown
         signal.signal(signal.SIGINT, self._stop_signal)
         signal.signal(signal.SIGTERM, self._stop_signal)
@@ -70,12 +83,6 @@ class Experiment:
 
         parameters: JsonParameterParser = JsonParameterParser(param_file)
 
-        server_connection: ServerConnection
-        if debug:
-            server_connection = _DebugServerConnection(connection, experiment_id)
-        else:
-            server_connection: ServerConnection = RPCServerConnection(connection, experiment_id)
-
         self._progress: pc.ProgressControl = pc.ProgressControl(self, len(models), num_subspace, server_connection)
 
         self._supply: JobSupplier = JobSupplier(num_subspace,
@@ -87,8 +94,12 @@ class Experiment:
                                                 parameters,
                                                 self._q_supply_run,
                                                 self._stop)
-
-        self._run: Runner = Serial(self._q_supply_run, self._q_run_export, self._stop)
+        if(processes <= 1):
+            self._run: Runner = Serial(self._q_supply_run, self._q_run_export, self._stop)
+        else:
+            count = min(os.cpu_count(), processes)
+            print(count)
+            self._run: Runner = Parallel(self._q_supply_run, self._q_run_export, self._stop, count)
 
         export_path = os.path.join(path_working_directory, self._export_dir)
         if not os.path.exists(export_path):
@@ -99,6 +110,23 @@ class Experiment:
         self._supply.start()
         self._run.start()
         self._export.start()
+
+        check_interval: int = 30
+        while not self._stop.is_set():
+            if not self._supply.is_alive():
+                self._output_error("The supply stage has crashed", server_connection)
+                self.stop()
+                break
+            if not self._run.is_alive():
+                self._output_error("The run stage has crashed", server_connection)
+                self.stop()
+                break
+            if not self._export.is_alive():
+                self._output_error("The export stage has crashed", server_connection)
+                self.stop()
+                break
+
+            time.sleep(check_interval)
 
         self._supply.join()
         self._run.join()
@@ -111,49 +139,59 @@ class Experiment:
     def _stop_signal(self, sig, frame) -> None:
         self.stop()
 
+    def _output_error(self, error: str, connection: ServerConnection):
+        connection.send_error(error)
+        print(error, file=sys.stderr)
 
-def _check_args(args: argparse.Namespace):
-    """Checks whether the arguments are usable
+    def _check_args(self, minsd: int, maxsd: int, ns: int, d: str, connection: ServerConnection):
+        """Function that validates arguments. Shuts the program down in case of invalid arguments.
 
-    Args:
-        args (argparse.Namespace): arguments
-    """
-    if args.minsd > args.maxsd:
-        print(f"minsd may not be smaller than maxsd: {args.minsd} > {args.maxsd}", file=sys.stderr)
-        exit(1)
+        Args:
+            minsd (int): minimal subspace dimension
+            maxsd (int): maximal subspace dimension
+            ns (int): number of subspaces
+            d (str): directory with all necessary files and subdirectories
+            connection (ServerConnection): a server connection object to notify the server of errors
+        """
+        if minsd > maxsd:
+            error = f"minsd may not be smaller than maxsd: {args.minsd} > {args.maxsd}"
+            self._output_error(error, connection)
+            exit(1)
 
-    if args.ns <= 0:
-        print("ns must be at least 1", file=sys.stderr)
-        exit(1)
+        if ns <= 0:
+            self._output_error("ns must be at least 1", connection)
+            exit(1)
 
-    if not os.path.isdir(args.d):
-        print(f"directory {args.d} does not exist", file=sys.stderr)
-        exit(1)
+        if not os.path.isdir(d):
+            self._output_error(f"directory {args.d} does not exist", connection)
+            exit(1)
 
-    model_dir = os.path.join(args.d, Experiment.model_dir)
+        model_dir = os.path.join(args.d, Experiment.model_dir)
 
-    if not os.path.isdir(model_dir):
-        print(f"the working directory does not contain the required {Experiment.model_dir} directory", file=sys.stderr)
-        exit(1)
+        if not os.path.isdir(model_dir):
+            self._output_error(f"the working directory does not contain the required {Experiment.model_dir} directory", connection)
+            exit(1)
 
-    param_flag: bool = False
+        param_flag: bool = False
 
-    for f in os.listdir(model_dir):
-        if f == Experiment.param_file:
-            param_flag = True
+        for f in os.listdir(model_dir):
+            if f == Experiment.param_file:
+                param_flag = True
+                break
 
-    if not param_flag:
-        print(f"{Experiment.param_file} is missing in {model_dir}", file=sys.stderr)
-        exit(1)
+        if not param_flag:
+            self._output_error(f"{Experiment.param_file} is missing in {model_dir}", connection)
+            exit(1)
 
-    data_flag: bool = False
-    for f in os.listdir(args.d):
-        if f.endswith(".csv"):
-            data_flag = True
+        data_flag: bool = False
+        for f in os.listdir(d):
+            if f.endswith(".csv"):
+                data_flag = True
+                break
 
-    if not data_flag:
-        print(f"data csv file is missing in {args.d}", file=sys.stderr)
-        exit(1)
+        if not data_flag:
+            self._output_error(f"data csv file is missing in {args.d}", connection)
+            exit(1)
 
 
 class _DebugServerConnection(ServerConnection):
@@ -163,6 +201,9 @@ class _DebugServerConnection(ServerConnection):
 
     def send_error(self, error: str):
         print("ERROR: ", error)
+
+    def send_warning(self, warning):
+        print("WARNING: ", warning)
 
     def send_result(self, name: str):
         print("Finished Result: ", name)
@@ -177,8 +218,8 @@ if __name__ == "__main__":
     parser.add_argument("-ns", type=int, help="number of subspaces", required=True)
     parser.add_argument("-id", type=str, help="unique identifier of the experiment", required=True)
     parser.add_argument("-c", type=str, help="server url", required=True)
+    parser.add_argument("-p", type=int, help="number of processes for parallel execution, default 1")
     parser.add_argument("-debug", help="enables debug mode, redirects server messages to console", action="store_true")
 
     args: argparse.Namespace = parser.parse_args()
-    _check_args(args)
-    Experiment(args.d, args.s, args.minsd, args.maxsd, args.ns, args.id, args.c, args.debug)
+    Experiment(args.d, args.s, args.minsd, args.maxsd, args.ns, args.id, args.c, args.debug, args.p)

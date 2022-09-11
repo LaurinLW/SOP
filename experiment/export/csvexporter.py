@@ -45,12 +45,12 @@ class CSVExporter(ex.Exporter):
                     df: pd.DataFrame = self._get_dataframe(export_job)
 
                     column_head: str
-                    if not export_job.get_model_string() is None:
-                        column_head = f"ERROR:{e} {export_job}"
-                    elif export_job.get_model_class() is None:
+                    if export_job.get_model_class() is None:
                         column_head = f"ERROR:{str(e)}"
-                    else:
+                    elif export_job.get_model_string is None:
                         column_head = f"ERROR:{e} {export_job.get_model_class()} {export_job.get_parameters()}"
+                    else:
+                        column_head = f"ERROR:{e} {export_job.get_model_string()}"
 
                     df[column_head] = np.nan
 
