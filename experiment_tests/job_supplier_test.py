@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 from typing import TextIO
 import os
+import time
 
 from django.forms import JSONField
 from multiprocessing import Queue
@@ -38,6 +39,7 @@ class JobSupplierTest(unittest.TestCase):
         self.parser: JsonParameterParser = JsonParameterParser(self.file)
         self.out: Queue = Queue(4)
         self.stop: Event = Event()
+        self.out_too_small: Queue = Queue(1)
         self.jobSupplier: JobSupplier = JobSupplier(
             self.number_subspaces,
             self.min_dimension,
@@ -62,8 +64,23 @@ class JobSupplierTest(unittest.TestCase):
             self.stop,
         )
 
+        self.jobSupplier_small_queue: JobSupplier = JobSupplier(
+            self.number_subspaces,
+            self.min_dimension,
+            self.max_dimension,
+            self.seed,
+            self.data,
+            self.models,
+            self.file,
+            self.out_too_small,
+            self.stop,
+        )
+
     def tearDown(self) -> None:
         self.stop.set()
+        
+
+        
 
     def test_amount_elements_queue(self) -> None:
         self.jobSupplier.start()
@@ -98,3 +115,12 @@ class JobSupplierTest(unittest.TestCase):
         #self.assertTrue(self.out.get()._e is not None)
         self.stop.set()
         self.jobSupplier_exception.join()
+    
+    def test_small_queue(self) -> None:
+        self.jobSupplier_small_queue.start()
+        time.sleep(2)
+        self.out_too_small.get()
+        self.out_too_small.get()
+        self.out_too_small.get()
+        self.stop.set()
+        self.jobSupplier_small_queue.join()
