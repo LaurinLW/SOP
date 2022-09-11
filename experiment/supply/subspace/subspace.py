@@ -33,11 +33,11 @@ class Subspace:
         return self.__indexes_after_cleaning
 
     @data.setter
-    def set__data(self):
+    def data(self, value):
         """Does not change value. Data may not be altered after creation."""
         pass
 
     @dimensions.setter
-    def set__dimensions(self):
+    def dimensions(self, value):
         """Does not change value. Dimensions may not be altered after creation."""
         pass

@@ -15,3 +15,13 @@ class SubspaceTest(unittest.TestCase):
 
     def test_data(self) -> None:
         self.assertTrue(np.array_equal(self.np_array, self.subspace.data))
+
+    def test_set_data(self) -> None:
+        old_data = self.subspace.data
+        self.subspace.data = np.array([[1, 2, 6], [10, 11, 14], [19, 20, 23]])
+        self.assertTrue(old_data is self.subspace.data)
+    
+    def test_set_dimensions(self) -> None:
+        old_dimensions = self.subspace.dimensions
+        self.subspace.dimensions = ["Eve", "Alice", "Max"]
+        self.assertTrue(old_dimensions is self.subspace.dimensions)
