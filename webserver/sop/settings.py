@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sop',
-    'modernrpc'
+    'modernrpc',
 ]
 
 MIDDLEWARE = [
@@ -131,3 +131,5 @@ STATIC_ROOT = 'sop/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login'
+
+EXPERIMENT_THREADS = 1
