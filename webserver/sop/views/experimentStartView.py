@@ -16,8 +16,11 @@ class ExperimentStartView(View, LoginRequiredMixin):
         Returns:
             HttpResponseRedirect: Redirects to the detail view of the experiment
         """
-        experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
-        version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        try:
+            experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+            version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        except:
+            return redirect("/home")
         if experiment.creator == request.user:
             if version.error is None:
                 version.start()

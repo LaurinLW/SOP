@@ -1,6 +1,4 @@
 from sop.tests.seleniumTestLoginView import SeleniumTestLoginView
-from sop.tests.testLoginView import TestLoginView
-from sop.tests.testRegisterView import TestRegiserView
 from sop.tests.seleniumTestRegisterView import SeleniumTestRegisterView
 from sop.tests.seleniumTestLogoutView import SeleniumTestLogoutView
 from sop.tests.seleniumTestCreateView import SeleniumTestCreateView

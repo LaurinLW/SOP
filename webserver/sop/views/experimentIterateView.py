@@ -18,8 +18,11 @@ class ExperimentIterateView(View, LoginRequiredMixin):
             --or--
             HttpResponseRedirect: Redirects to the details view of the new iteration
         """
-        experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
-        version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        try:
+            experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+            version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        except:
+            return redirect("/home")
         if experiment.creator == request.user:
             if version.error is None:
                 maxVersion = VersionModel.objects.all().filter(experiment_id=experiment.id).filter(edits=kwargs.get("edits")).aggregate(Max('runs'))
