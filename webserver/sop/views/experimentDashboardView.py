@@ -32,15 +32,15 @@ class ExperimentDashboardView(View):
         version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
 
         if not experiment.creator == request.user:
-            redirect("/")
+            return redirect("/")
 
         metric_name = kwargs.get("metric", "")
         if metric_name == "":
-            redirect("/dashboard/"
-                     + str(kwargs.get("detail_id"))
-                     + "/" + str(kwargs.get("edits"))
-                     + "." + str(kwargs.get("runs"))
-                     + "/" + self.DEFAULT_METRIC)
+            return redirect("/dashboard/"
+                            + str(kwargs.get("detail_id"))
+                            + "/" + str(kwargs.get("edits"))
+                            + "." + str(kwargs.get("runs"))
+                            + "/" + self.DEFAULT_METRIC)
 
         used_metric = None
 
@@ -63,7 +63,10 @@ class ExperimentDashboardView(View):
         if metric_name in self._metrics.keys():
             used_metric = self._metrics[metric_name](version)
         else:
-            used_metric = self._metrics[self.DEFAULT_METRIC](version)
+            return redirect("/dashboard/"
+                            + str(kwargs.get("detail_id"))
+                            + "/" + str(kwargs.get("edits"))
+                            + "." + str(kwargs.get("runs")))
 
         # disabled because metrics are currently not serializable
         # request.session["metric"] = used_metric

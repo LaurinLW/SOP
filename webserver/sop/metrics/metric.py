@@ -1,6 +1,6 @@
 import abc
 import string
-from sop.metrics.views.metricView import MetricView
+from sop.metrics.views import MetricView
 from sop.models import VersionModel
 
 
