@@ -6,7 +6,7 @@ class Result:
     """A Result instance is a result of a executed Job.
     """
 
-    def __init__(self, job: Job, e: Exception = None) -> None:
+    def __init__(self, job: Job = None, e: Exception = None) -> None:
         """constructor
 
         Args:

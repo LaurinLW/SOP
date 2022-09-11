@@ -22,9 +22,11 @@ class EncoderOneHotTest(unittest.TestCase):
         )
 
     def test_encode_one_hot(self) -> None:
-        print(self.testDataFrame)
-        print(self.encoder.encode(self.testDataFrame))
-        print(self.testSolution)
         self.assertTrue(
             DataFrame.equals(self.encoder.encode(self.testDataFrame), self.testSolution)
+        )
+
+    def test_encode_one_hot_no_categorical(self) -> None:
+        self.assertTrue(
+            DataFrame.equals(self.encoder.encode(self.testSolution), self.testSolution)
         )
