@@ -22,8 +22,11 @@ class ExperimentEditView(LoginRequiredMixin, View):
             HttpResponse: Return an HttpResponse whose content is filled with
             the result of calling django.shortcuts.render with the passed arguments
         """
-        experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
-        version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        try:
+            experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+            version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        except:
+            redirect("home")
         possible_algorithms = AlgorithmModel.objects.all().filter(creator_id=request.user.id)  # own algorithms
         pyod_algorithms = AlgorithmModel.objects.all().filter(creator_id=None).order_by("name").values()  # pyod algorithms
         algorithms = (possible_algorithms | pyod_algorithms)
@@ -69,6 +72,7 @@ class ExperimentEditView(LoginRequiredMixin, View):
             newVersion.parameterSettings = parameters
             newVersion.status = "paused"
             newVersion.pid = None
+            newVersion.warning = None
             newVersion.progress = 0
             newVersion.save()
             experiment.latestVersion = str(newVersion.edits) + "." + str(newVersion.runs)

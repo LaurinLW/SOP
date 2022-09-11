@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -21,8 +21,11 @@ class ExperimentResultView(View, LoginRequiredMixin):
             HttpResponse: Return an HttpResponse whose content is filled with
             the result of calling django.shortcuts.render with the passed arguments
         """
-        experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
-        version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        try:
+            experiment = ExperimentModel.objects.get(id=kwargs.get("detail_id"))
+            version = VersionModel.objects.get(Q(experiment_id=experiment.id) & Q(edits=kwargs.get("edits")) & Q(runs=kwargs.get("runs")))
+        except:
+            return redirect("/home")
         results = ResultModel.objects.all().filter(version_id=version.id)
         if kwargs.get("result_id", 0) == 0:
             if (experiment.creator == request.user):
