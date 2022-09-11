@@ -81,7 +81,11 @@ class Experiment:
 
         param_file.seek(0, 0)
 
-        parameters: JsonParameterParser = JsonParameterParser(param_file)
+        try:
+            parameters: JsonParameterParser = JsonParameterParser(param_file)
+        except Exception as e:
+            self._output_error(str(e), server_connection)
+            exit(1)
 
         self._progress: pc.ProgressControl = pc.ProgressControl(self, len(models), num_subspace, server_connection)
 
@@ -98,7 +102,6 @@ class Experiment:
             self._run: Runner = Serial(self._q_supply_run, self._q_run_export, self._stop)
         else:
             count = min(os.cpu_count(), processes)
-            print(count)
             self._run: Runner = Parallel(self._q_supply_run, self._q_run_export, self._stop, count)
 
         export_path = os.path.join(path_working_directory, self._export_dir)
@@ -222,4 +225,8 @@ if __name__ == "__main__":
     parser.add_argument("-debug", help="enables debug mode, redirects server messages to console", action="store_true")
 
     args: argparse.Namespace = parser.parse_args()
-    Experiment(args.d, args.s, args.minsd, args.maxsd, args.ns, args.id, args.c, args.debug, args.p)
+    if args.p is None:
+        p_count = 1
+    else:
+        p_count = args.p
+    Experiment(args.d, args.s, args.minsd, args.maxsd, args.ns, args.id, args.c, args.debug, p_count)

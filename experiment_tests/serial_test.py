@@ -64,14 +64,12 @@ class SerialTestCase(unittest.TestCase):
             self.in_q.put(j)
 
         while self.in_q.qsize() >= len(self.input_results) - 1:
-            print(self.in_q.qsize())
             time.sleep(0.01)
 
         # work around. Wait for second job finish. Goal: serial is unable to put in out_q
         # no sleep would be better, but there is no way to look into the internals of the object
         time.sleep(4)
 
-        print(len(self.input_results))
         for j in self.input_results:
             lim_out_q.get().unpack()
 
