@@ -37,7 +37,7 @@ class AlgorithmUploadView(View, LoginRequiredMixin):
                 return redirect('/uploadAlgorithm')
             algorithm_name = request.POST.get('name')
             # checking if there is a name assigned to the algorithm
-            if algorithm_name is None:
+            if algorithm_name is None or not algorithm_name:
                 messages.warning(request, "'name' cant be empty!")
                 return redirect('/uploadAlgorithm')
             # checking if the name has already been assigned to another algorithm
