@@ -32,6 +32,11 @@ class TestMetric(Metric):
         dataset = pd.read_csv(self._version.experiment.dataset.file.path)
         dataset.rename(columns={'Unnamed: 0': 'index'}, inplace=True)
 
+        if 'index' not in dataset.columns:
+            dataset['index'] = np.arange(1, len(dataset) + 1)
+
+        dataset.set_index('index')
+
         # parse the filter string
         percentile = 0.95
         select = dataset.columns  # select all columns by default
