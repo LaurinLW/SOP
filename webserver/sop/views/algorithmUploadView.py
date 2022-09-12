@@ -41,7 +41,7 @@ class AlgorithmUploadView(View, LoginRequiredMixin):
                 messages.warning(request, "'name' cant be empty!")
                 return redirect('/uploadAlgorithm')
             # checking if the name has already been assigned to another algorithm
-            if AlgorithmModel.objects.filter(name=algorithm_name).exists():
+            if AlgorithmModel.objects.all().filter(name=algorithm_name).filter(creator=request.user).exists():
                 messages.warning(request, "This name has already been assigned to another algorithm!")
                 return redirect('/uploadAlgorithm')
             if algorithm_form.is_valid():
