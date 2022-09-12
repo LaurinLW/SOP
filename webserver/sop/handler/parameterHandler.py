@@ -43,7 +43,7 @@ class ParameterHandler():
                         error = True
                 elif original_type == bool:
                     try:
-                        transformed = bool(request.POST[postdata])
+                        transformed = True if request.POST[postdata] == "True" or request.POST[postdata] == "true" else False
                         parameters += f'\"{postdata.split(":")[1]}\": %s ,\n' % ('true' if transformed else 'false')
                     except ValueError:
                         error = True
@@ -53,7 +53,7 @@ class ParameterHandler():
                     else:
                         if request.POST[postdata] == "True" or request.POST[postdata] == "true" or \
                                 request.POST[postdata] == "False" or request.POST[postdata] == "false":
-                            transformed = bool(request.POST[postdata])
+                            transformed = True if request.POST[postdata] == "True" or request.POST[postdata] == "true" else False
                             parameters += f'\"{postdata.split(":")[1]}\": %s ,\n' % ('true' if transformed else 'false')
                         else:
                             try:

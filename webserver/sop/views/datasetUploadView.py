@@ -39,7 +39,7 @@ class DatasetUploadView(View, LoginRequiredMixin):
                 messages.warning(request, "'name' can not be empty!")
                 return redirect('/uploadDataset')
             # checking if the assigned name is not being used for another dataset
-            if DatasetModel.objects.filter(name=dataset_name).exists():
+            if DatasetModel.objects.all().filter(creator=request.user).filter(name=dataset_name).exists():
                 messages.warning(request, "This name has already been assigned to another dataset!")
                 return redirect('/uploadDataset')
             dataset_form = DatasetForm(request.POST, request.FILES)
