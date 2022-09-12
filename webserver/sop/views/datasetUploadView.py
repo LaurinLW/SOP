@@ -32,10 +32,10 @@ class DatasetUploadView(View, LoginRequiredMixin):
             # checking if the uploaded file is non existent
             if request.FILES.get('file') is None:
                 messages.warning(request, "Uploaded dataset can not be empty!")
-                return redirect('uploadDataset')
+                return redirect('/uploadDataset')
             dataset_name = request.POST.get('name')
             # checking if there is a name assigned to the dataset
-            if dataset_name is None:
+            if dataset_name is None or not dataset_name:
                 messages.warning(request, "'name' can not be empty!")
                 return redirect('/uploadDataset')
             # checking if the assigned name is not being used for another dataset

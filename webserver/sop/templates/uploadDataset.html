@@ -14,6 +14,13 @@
                 upload
             </p>
         </button>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <p style="position:absolut;top:70%;right:50%;color:red">{{ message }}</p>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </form>
 </div>
 <div class="loader"></div>

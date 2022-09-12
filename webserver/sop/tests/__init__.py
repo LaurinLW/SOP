@@ -15,3 +15,5 @@ from sop.tests.seleniumTestStopView import SeleniumTestStopView
 from sop.tests.seleniumTestDashboardView import SeleniumTestDashboardView
 from sop.tests.testMetrics import TestMetrics
 from sop.tests.testMetricViews import TestMetricViews
+from sop.tests.seleniumTestAdminView import SeleniumTestAdminView
+from sop.tests.seleniumTestProfileView import SeleniumTestProfileView
