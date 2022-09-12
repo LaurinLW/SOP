@@ -68,6 +68,10 @@ class Parallel(Runner):
                     self._next_input = None
                     continue
 
+                if next_job.get_subspace_data().size <= 0:
+                    message = "Subspace data size may not be less than 1. This may occur becaus of data cleaning."
+                    self._export_list.append(Result(next_job, ValueError(message)))
+
                 self._memory_manager.register_subspace(
                     next_job.get_subspace_data()
                 )

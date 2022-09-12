@@ -38,9 +38,6 @@ class CSVExporter(ex.Exporter):
                 try:
                     export_job = next_result.unpack()
                 except Exception as e:
-                    self._progress.update_error(next_result.job.get_subspace_dimensions(),
-                                                e)
-
                     export_job = next_result.job
                     df: pd.DataFrame = self._get_dataframe(export_job)
 
@@ -53,6 +50,9 @@ class CSVExporter(ex.Exporter):
                         column_head = f"ERROR:{e} {export_job.get_model_string()}"
 
                     df[column_head] = np.nan
+
+                    self._progress.update_error(next_result.job.get_subspace_dimensions(),
+                                                e)
 
                     next_result = None
                     continue
