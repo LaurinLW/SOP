@@ -11,6 +11,7 @@ def set_setting(key: str, value: str):
     cnf.append(key + " = '" + value + "'")
     write_settings(cnf)
 
+
 def add_allowed_host(host: str):
     cnf = read_settings()
     s = [index for index, g in enumerate(cnf) if g.startswith('ALLOWED_HOSTS')]
@@ -22,9 +23,10 @@ def add_allowed_host(host: str):
     if ']' in cnf[index]:
         cnf[index] = cnf[index].replace(']', "'" + host + "',]")
     else:
-        cnf.insert(index+1, "'" + host + "',")
+        cnf.insert(index + 1, "'" + host + "',")
 
     write_settings(cnf)
+
 
 def read_settings():
     lines = []

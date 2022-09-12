@@ -87,17 +87,36 @@ class Experiment:
             self._output_error(str(e), server_connection)
             exit(1)
 
-        self._progress: pc.ProgressControl = pc.ProgressControl(self, len(models), num_subspace, server_connection)
+        self.num_subspace = num_subspace
 
-        self._supply: JobSupplier = JobSupplier(num_subspace,
+        dataset: pd.DataFrame = pd.read_csv(os.path.join(path_working_directory, data_file))
+
+        self._supply: JobSupplier = JobSupplier(self.num_subspace,
                                                 min_subspace_dim,
                                                 max_subspace_dim,
                                                 seed,
-                                                pd.read_csv(os.path.join(path_working_directory, data_file)),
+                                                dataset,
                                                 models,
                                                 parameters,
                                                 self._q_supply_run,
                                                 self._stop)
+
+        max_number_subspace = self._supply.get_max_number_subspaces()
+        if max_number_subspace < self.num_subspace:
+            self.num_subspace = max_number_subspace
+            self._supply: JobSupplier = JobSupplier(max_number_subspace,
+                                                    min_subspace_dim,
+                                                    max_subspace_dim,
+                                                    seed,
+                                                    dataset,
+                                                    models,
+                                                    parameters,
+                                                    self._q_supply_run,
+                                                    self._stop)
+            server_connection.send_warning(f"Requested number of subspaces {num_subspace} is too big. Set to {max_number_subspace}")
+
+        self._progress: pc.ProgressControl = pc.ProgressControl(self, len(models), self.num_subspace, server_connection)
+
         if(processes <= 1):
             self._run: Runner = Serial(self._q_supply_run, self._q_run_export, self._stop)
         else:
@@ -114,7 +133,7 @@ class Experiment:
         self._run.start()
         self._export.start()
 
-        check_interval: int = 30
+        check_interval: int = 1
         while not self._stop.is_set():
             if not self._supply.is_alive():
                 self._output_error("The supply stage has crashed", server_connection)

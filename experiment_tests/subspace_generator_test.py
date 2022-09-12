@@ -11,12 +11,14 @@ from experiment.supply.preprocessing.cleaner import Cleaner
 from experiment.supply.preprocessing.cleaner_drop_nan import DropNaNCleaner
 from experiment.supply.preprocessing.encoder import Encoder
 from experiment.supply.preprocessing.encoder_one_hot import EncoderOneHot
+from experiment.supply.subspace.invalid_number_subspaces_requested_exception import InvalidNumberSubspacesRequestedException
 
 
 class SubspaceGeneratorTest(unittest.TestCase):
     def setUp(self) -> None:
         self.counter: int = 0
         self.number_subspaces: int = 5
+        self.number_subspaces_too_many: int = 69420
         self.min_dimension: int = 3
         self.max_dimension: int = 6
         self.starting_seed: int = 1234
@@ -42,8 +44,18 @@ class SubspaceGeneratorTest(unittest.TestCase):
             self.encoder,
             self.cleaner,
         )
+        self.subspace_generator_too_many: SubspaceGenerator = SubspaceGenerator(
+            self.number_subspaces_too_many,
+            self.min_dimension,
+            self.max_dimension,
+            self.starting_seed,
+            self.data,
+            self.encoder,
+            self.cleaner,
+        )
         self.test_subspace_list: list[Subspace] = list()
         self.iterator = iter(self.subspace_generator)
+        self.iterator_too_many = iter(self.subspace_generator_too_many)
 
         while True:
             try:
@@ -64,3 +76,11 @@ class SubspaceGeneratorTest(unittest.TestCase):
             len(self.test_subspace_list[0].dimensions)
             == np.size(self.test_subspace_list[0].data, 1)
         )
+
+    def test_too_many_subspaces(self):
+        try:
+            for subspace in self.iterator_too_many:
+                self.test_subspace_list.append(subspace)
+            self.fail()
+        except InvalidNumberSubspacesRequestedException as e:
+            pass

@@ -65,10 +65,10 @@ class JobSupplier(PipelineStage):
         self.__stop: Event = stop
         self.__out_queue: Queue = out
         self.__jobs_failed_to_add: list[Job] = list()
+        self.__max_number_subspaces: int = self.subspace_generator.get_max_number_subspaces()
 
     def run(self) -> None:
         """method that creates Jobs and puts them into the Queue to be processed when possible"""
-
         iterator = iter(self.subspace_generator)
 
         while not self.__stop.is_set():
@@ -96,3 +96,6 @@ class JobSupplier(PipelineStage):
                     continue
 
         self.__stop.wait()
+
+    def get_max_number_subspaces(self) -> int:
+        return self.__max_number_subspaces
